@@ -4,7 +4,7 @@ function root = myRootFunc(a, b, QUAD, c0, tol)
 
   yb = myFunc(b, QUAD, c0);
   while (abs(b - a) > tol)
-      c = (a + b) / 2; yc = f(c, QUAD, c0);
+      c = (a + b) / 2; yc = myFunc(c, QUAD, c0);
       if yc == 0
           a = c; b = c;
       elseif yb * yc > 0
