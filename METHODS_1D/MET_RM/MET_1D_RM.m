@@ -9,12 +9,12 @@
 %        BC  = BOUNDARY CONDITIONS
 %        TOL = TOLERANCE (STOP CRITERIA)
 
-% OUTPUT: SFLUX = SCALAR FLUX AT THE EDGES
-%         AFLUX = ANGULAR FLUX AT THE EDGES
+% OUTPUT: SCALAR_FLUX = SCALAR FLUX AT THE EDGES
+%         ANGULAR_FLUX = ANGULAR FLUX AT THE EDGES
 %         ITER = NUMBER OF ITERATIONS
 %         TIME = CALCULATION TIME
 
-function [SFLUX, AFLUX, ITER, TIME] = MET_1D_RM(N, ZON, DOM, BC, TOL)
+function [SCALAR_FLUX, ANGULAR_FLUX, ITER, TIME] = MET_1D_RM(N, ZON, DOM, BC, TOL)
 
   % VARIABLES
   NR = length(DOM(1, :)); ntc = sum(DOM(2, :)); QUAD = GAUSS_QUAD(N);
@@ -22,12 +22,12 @@ function [SFLUX, AFLUX, ITER, TIME] = MET_1D_RM(N, ZON, DOM, BC, TOL)
   err = 1; ITER = 0;
 
   % INICIALIZATION
-  AFLUX = zeros(ntc + 1, N); SFLUX = zeros(ntc, 1);
+  ANGULAR_FLUX = zeros(ntc + 1, N); SCALAR_FLUX = zeros(ntc, 1);
   for m = 1: N
     if (m <= N/2 && BC(1) ~= -1)
-      AFLUX(1, m) = BC(1);
+      ANGULAR_FLUX(1, m) = BC(1);
     elseif (BC(2) ~= -1)
-      AFLUX(ntc + 1, m) = BC(2);
+      ANGULAR_FLUX(ntc + 1, m) = BC(2);
     end
   end
   
@@ -44,17 +44,17 @@ function [SFLUX, AFLUX, ITER, TIME] = MET_1D_RM(N, ZON, DOM, BC, TOL)
       RM = R(:, :, r); PM = P(:, r);
       for i = 1: nc
         IB = IB + 1; IF = IB + 1;
-        IN = [AFLUX(IB, 1: N / 2) AFLUX(IF, N / 2 + 1: N)]';
+        IN = [ANGULAR_FLUX(IB, 1: N / 2) ANGULAR_FLUX(IF, N / 2 + 1: N)]';
         OUT = RM * IN + PM; 
-        AFLUX(IF, 1: N / 2) = OUT(1: N / 2);
-        AFLUX(IB, N / 2 + 1: N) = OUT(N / 2 + 1: N);
+        ANGULAR_FLUX(IF, 1: N / 2) = OUT(1: N / 2);
+        ANGULAR_FLUX(IB, N / 2 + 1: N) = OUT(N / 2 + 1: N);
       end
     end
     
     % IN CASE OF BOUNDARY CONDITION ON THE RIGHT 
     if (BC(2) == -1)
       for m = 1: N/2
-        AFLUX(ntc + 1, N/2 + m) = AFLUX(ntc + 1, m);
+        ANGULAR_FLUX(ntc + 1, N/2 + m) = ANGULAR_FLUX(ntc + 1, m);
       end
     end
     
@@ -65,17 +65,17 @@ function [SFLUX, AFLUX, ITER, TIME] = MET_1D_RM(N, ZON, DOM, BC, TOL)
       RM = R(:, :, r); PM = P(:, r);
       for i = 1: nc
         IB = IB - 1; IF = IB + 1;
-        IN = [AFLUX(IB, 1: N / 2) AFLUX(IF, N / 2 + 1: N)]';
+        IN = [ANGULAR_FLUX(IB, 1: N / 2) ANGULAR_FLUX(IF, N / 2 + 1: N)]';
         OUT = RM * IN + PM; 
-        AFLUX(IF, 1: N / 2) = OUT(1: N / 2);
-        AFLUX(IB, N / 2 + 1: N) = OUT(N / 2 + 1: N);
+        ANGULAR_FLUX(IF, 1: N / 2) = OUT(1: N / 2);
+        ANGULAR_FLUX(IB, N / 2 + 1: N) = OUT(N / 2 + 1: N);
       end
     end
     
     % IN CASE OF BOUNDARY CONDITION ON THE LEFT
     if (BC(1) == -1)
       for m = 1: N/2
-        AFLUX(1, m) = AFLUX(1, N/2 + m);
+        ANGULAR_FLUX(1, m) = ANGULAR_FLUX(1, N/2 + m);
       end
     end
     
@@ -85,14 +85,14 @@ function [SFLUX, AFLUX, ITER, TIME] = MET_1D_RM(N, ZON, DOM, BC, TOL)
       nc = DOM(2, r);
       for i = 1: nc
         IB = IB + 1;
-        faux = SFLUX(IB);
+        faux = SCALAR_FLUX(IB);
         sflux = 0;
         for m = 1: N
           w = QUAD(m,2); 
-          sflux = sflux + AFLUX(IB, m) * w;
+          sflux = sflux + ANGULAR_FLUX(IB, m) * w;
         end
         sflux = 0.5*sflux;
-        SFLUX(IB) = sflux;
+        SCALAR_FLUX(IB) = sflux;
         if (abs(1 - faux/sflux) > err)
           err = abs(1 - faux/sflux);
         end
