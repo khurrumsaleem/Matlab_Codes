@@ -3,15 +3,11 @@
   % QUADRATURE ORDER
   N = 2;
 
-  % NUMBER OF ZONES
-  NZ = 1;  
-
+  % ZONES
   ZON = [1.0;    % SIGMA_T
          0.5];   % SIGMA_S
 
-  % NUMBER OF REGIONS
-  NR = 1;   
-
+  % DOMAIN
   DOM = [1;      % LENGHT
          100;    % NUMBER OF NODES
           1;     % ZONE INDEX
