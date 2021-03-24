@@ -1,5 +1,8 @@
 % PROBLEM NO. 1 (Larsen, 1986)
- 
+
+  % QUADRATURE ORDER
+  N = 2;
+
   % ZONES
   ZON = [1.00;    % SIGMA_T
          0.97];   % SIGMA_S

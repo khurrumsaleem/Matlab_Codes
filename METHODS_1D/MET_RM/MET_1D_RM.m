@@ -1,6 +1,6 @@
 % IMPLEMENTATION OF THE RESPONSE MATRIX METHOD FOR FIXED SOURCE, ISOTROPIC 
 % SCATTERING, ONE-GROUP OF ENERGY DISCRETE-ORDINATES PROBLEMS IN SLAB
-% GEOMETRY.
+% GEOMETRY. (REF: Silva et. al., 2013)
 
 % INPUT: (PROBLEM SETUP)
 %        N   = QUADRATURE ORDER
@@ -22,7 +22,7 @@ function [SCALAR_FLUX, ANGULAR_FLUX, ITER, TIME] = MET_1D_RM(N, ZON, DOM, BC, TO
   err = 1; ITER = 0;
 
   % INICIALIZATION
-  ANGULAR_FLUX = zeros(ntc + 1, N); SCALAR_FLUX = zeros(ntc, 1);
+  ANGULAR_FLUX = zeros(ntc + 1, N); SCALAR_FLUX = zeros(ntc + 1, 1);
   for m = 1: N
     if (m <= N/2 && BC(1) ~= -1)
       ANGULAR_FLUX(1, m) = BC(1);
@@ -84,15 +84,16 @@ function [SCALAR_FLUX, ANGULAR_FLUX, ITER, TIME] = MET_1D_RM(N, ZON, DOM, BC, TO
     for r = 1: NR
       nc = DOM(2, r);
       for i = 1: nc
-        IB = IB + 1;
+        IB = IB + 1; IF = IB + 1;
         faux = SCALAR_FLUX(IB);
-        sflux = 0;
+        sflux = 0; sflux2 = 0;
         for m = 1: N
           w = QUAD(m,2); 
           sflux = sflux + ANGULAR_FLUX(IB, m) * w;
+          sflux2 = sflux2 + ANGULAR_FLUX(IF, m) * w;
         end
-        sflux = 0.5*sflux;
-        SCALAR_FLUX(IB) = sflux;
+        sflux = 0.5 * sflux; sflux2 = 0.5 * sflux2;
+        SCALAR_FLUX(IB) = sflux; SCALAR_FLUX(IF) = sflux2;
         if (abs(1 - faux/sflux) > err)
           err = abs(1 - faux/sflux);
         end
