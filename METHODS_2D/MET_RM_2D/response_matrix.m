@@ -1,7 +1,16 @@
 % CONSTRUCTION OF THE RESPONSE MATRIX R AND THE SOURCE VECTOR P FOR THE
 % ITERATIVE PROCESS
 
-function [R, P] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
+% OUTPUT: R = RESPONSE MATRIX FOR THE ITERATIVE PROCESS
+%         P = SOURCE VECTOR FOR THE ITERATIVE PROCESS
+%         RM = RESPONSE MATRIZ FOR THE RECONSTRUCTION OF THE AVERAGE
+%              ANGULAR FLUXES IN EACH NODE
+%         LM = LEAKAGE MATRIX FOR THE RECONTRUCTION OF THE AVERAGE ANGULAR
+%              FLUXES IN EACH NODE
+%         PM = SOURCE VECTOR FOR THE RECONSTRUCTION OF THE AVERAGE ANGULAR
+%              FLUXES IN EACH NODE
+
+function [R, P, RM, LM, PM] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
 % SHORTHAND
 % R(m, k, ry, rx)   P(m, ry, rx)
   
@@ -13,10 +22,13 @@ function [R, P] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
   % RESPONSE MATRIX AND SOURCE VECTOR
   M = N * (N + 2) / 2;
   R = zeros(2 * M, 2 * M, NRY, NRX); P = zeros(2 * M, NRY, NRX);
+  RM = zeros(M, M, NRY, NRX); LM = zeros(M, M, NRY, NRX);
+  PM = zeros(M, NRY, NRX);
   
   % AUXILIARY MATRICES
   XA = zeros(M, M); YA = zeros(M, M); XB = zeros(M, M); YB = zeros(M, M);
   XE = zeros(M, M); YE = zeros(M, M); I = eye(M, M);    H = zeros(M, 1);
+  XM = zeros(M, M);
   
   % DEFINE EACH MATRIX PER REGION
   for ry = 1: NRY
@@ -100,6 +112,9 @@ function [R, P] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
             if (k == m), YB(m, k) = YB(m,k) - miu / (st * hx); end
               
           end
+          
+          XM(m, k) = xvects(m, k, z) * xvals(k, z) * 2 * sinh(0.5 * st * hx / xvals(k, z)) / (st * hx);
+          
         end
         
         % H COLUMN VECTOR
@@ -109,6 +124,15 @@ function [R, P] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
     
       XE_INV = inv(XE); 
       YE_INV = inv(YE);
+      
+      % CALCULATE THE RESPONSE MATRIX FOR RECONSTRUCTION
+      RM(:, :, ry, rx) = XM * XE_INV;
+      
+      % CALCULATE THE LEAKAGE MATRIX FOR RECONSTRUCTION
+      LM(:, :, ry, rx) = XB - XM * (XE_INV * XB);
+      
+      % CALCULATE THE SOURCE VECTOR FRO RECONSTRUCTION
+      PM(:, ry, rx) = (I - XM * XE_INV) * H;
       
       AUX = [           I                 , (- (XB - XA * (XE_INV * XB)));
              (- (YB - YA * (YE_INV * YB))),              I              ];
