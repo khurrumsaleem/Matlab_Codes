@@ -9,11 +9,11 @@
   
   % REGIONS IN X (1. xlength; 2. xcells)
   XDOM = [1; 
-          1];
+          10];
   
   % REGIONS IN Y (1. ylength; 2. ycells)
   YDOM = [1; 
-          1];
+          10];
   
   % ZONE MAP Y x X ( # zona ) 
   ZMAP = 1;

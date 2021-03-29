@@ -5,14 +5,14 @@
   
   % ZONES (1. st; 2. ss)
   ZON = [1; 
-         0.95];
+         0.9];
   
   % REGIONS IN X (1. xlength; 2. xcells)
-  XDOM = [20; 
+  XDOM = [2; 
           20];
   
   % REGIONS IN Y (1. ylength; 2. ycells)
-  YDOM = [20; 
+  YDOM = [2; 
           20];
   
   % ZONE MAP Y x X ( # zona ) 
