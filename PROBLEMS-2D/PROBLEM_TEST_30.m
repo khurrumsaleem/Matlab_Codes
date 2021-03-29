@@ -9,7 +9,7 @@
   
   % Regiones X (1. xlength; 2. xcells)
   XDOM = [1; 
-          1];
+          2];
   
   % Regiones Y (1. ylength; 2. ycells)
   YDOM = [10; 

@@ -49,14 +49,14 @@ function [R, ...  % RESPONSE MATRIX FOR THE ITERATIVE PROCESS
   % DEFINE EACH MATRIX PER REGION
   JB = 0;
   for ry = 1: NRY
-    leny = YDOM(1, ry); ncy = YDOM(2, ry); hy = leny / ntcy;
+    leny = YDOM(1, ry); ncy = YDOM(2, ry); hy = leny / ncy;
     for j = 1: ncy
       JB = JB + 1;
       IB = 0;
       for rx = 1: NRX
     
         % AUXILIARY PARAMETERS
-        lenx = XDOM(1, rx); ncx = XDOM(2, rx); hx = lenx / ntcx;
+        lenx = XDOM(1, rx); ncx = XDOM(2, rx); hx = lenx / ncx;
         z = ZMAP(ry, rx); st = ZON(1, z); ss = ZON(2, z); c0 = ss/st;
         Q = QMAP(ry, rx);
         for i = 1: ncx
@@ -111,7 +111,7 @@ function [R, ...  % RESPONSE MATRIX FOR THE ITERATIVE PROCESS
                                  * k_theta * k_w / ((st - m_miu * LANDAB(JB, IB)) * XDB(JB, IB) ...
                                  * hy * (st - k_miu * LANDAB(JB, IB)));
                   if (k == m) 
-                      MC(m, k) = MC_OUT(m,k) + XNB(JB, IB) * (2 * sinh(0.5 * LANDAB(JB, IB) * hx)/(LANDAB(JB, IB) * hx)) ...
+                      MC(m, k) = MC(m,k) + XNB(JB, IB) * (2 * sinh(0.5 * LANDAB(JB, IB) * hx)/(LANDAB(JB, IB) * hx)) ...
                                      * m_theta / (hy * (st - m_miu * LANDAB(JB, IB)));
                   end
                   
@@ -205,7 +205,7 @@ function [R, ...  % RESPONSE MATRIX FOR THE ITERATIVE PROCESS
                                  * k_theta * k_w / ((st + m_miu * LANDA0(JB, IB)) * XD0(JB, IB) ...
                                  * hy * (st + k_miu * LANDA0(JB, IB)));
                              
-                  XB_IN(m, k) = + 0.25 * ss * XN0(JB, IB) * exp(0.5 * LANDA0(JB, IB) * hx) ...
+                  XB_IN(m, k) = + 0.25 * ss * XN0(JB, IB) * exp(- 0.5 * LANDA0(JB, IB) * hx) ...
                                  * k_theta * k_w / ((st + m_miu * LANDA0(JB, IB)) * XD0(JB, IB) ...
                                  * hy * (st + k_miu * LANDA0(JB, IB)));
                              
@@ -608,7 +608,7 @@ function [R, ...  % RESPONSE MATRIX FOR THE ITERATIVE PROCESS
                                    * m_theta / (hy * (st + m_miu * LANDA0(JB, IB))); 
                   end
                   
-                  XB_IN(m, k) = + 0.25 * ss * XN0(JB, IB) * exp(- 0.5 * LANDA0(JB, IB) * hx) ...
+                  XB_IN(m, k) = + 0.25 * ss * XN0(JB, IB) * exp(0.5 * LANDA0(JB, IB) * hx) ...
                                  * k_theta * k_w / ((st + m_miu * LANDA0(JB, IB)) * XD0(JB, IB) ...
                                  * hy * (st + k_miu * LANDA0(JB, IB)));
                   if (k == m) 
@@ -701,7 +701,7 @@ function [R, ...  % RESPONSE MATRIX FOR THE ITERATIVE PROCESS
                                  * k_miu * k_w / ((st + m_theta * LANDA0(JB, IB)) * YD0(JB, IB) ...
                                  * hx * (st + k_theta * LANDA0(JB, IB)));
                              
-                  YB_OUT(m, k) = - 0.25 * ss * YN0(JB, IB) * exp(0.5 * LANDA0(JB, IB) * hy) ...
+                  YB_IN(m, k) = - 0.25 * ss * YN0(JB, IB) * exp(0.5 * LANDA0(JB, IB) * hy) ...
                                  * k_miu * k_w / ((st + m_theta * LANDA0(JB, IB)) * YD0(JB, IB) ...
                                  * hx * (st + k_theta * LANDA0(JB, IB)));
                              
@@ -709,7 +709,7 @@ function [R, ...  % RESPONSE MATRIX FOR THE ITERATIVE PROCESS
                                  * k_miu * k_w / ((st + m_theta * LANDAL(JB, IB)) * YDL(JB, IB) ...
                                  * hx * (st + k_theta * LANDAL(JB, IB)));
                              
-                  YC_OUT(m, k) = + 0.25 * ss * YNL(JB, IB) * exp(0.5 * LANDAL(JB, IB) * hy) ...
+                  YC_IN(m, k) = + 0.25 * ss * YNL(JB, IB) * exp(0.5 * LANDAL(JB, IB) * hy) ...
                                  * k_miu * k_w / ((st + m_theta * LANDAL(JB, IB)) * YDL(JB, IB) ...
                                  * hx * (st + k_theta * LANDAL(JB, IB)));
                              
@@ -933,7 +933,11 @@ function [R, ...  % RESPONSE MATRIX FOR THE ITERATIVE PROCESS
                 end
               %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
               end % END LOOP FOR THE COLUMNS (IVQ)
-            end 
+            end
+            
+           % for k = 1: M
+           %   XM(m, k) = xvects(m, k, z) * xvals(k, z) * 2 * sinh(0.5 * st * hx / xvals(k, z)) / (st * hx);
+            %end
             
             % H COLUMN VECTOR
             H(m) = Q / (st * (1 - c0));
@@ -959,14 +963,14 @@ function [R, ...  % RESPONSE MATRIX FOR THE ITERATIVE PROCESS
       
           AUX_INV = inv(AUX);
       
-          AUX2 = [        (XA * XE_INV)               , (- (XC_OUT - XA * (XE_INV * XC_IN)));
-                  (- (YC_OUT - YA * (YE_INV * YC_IN))),           (YA * YE_INV)            ];
+          AUX2 = [        (XA * XE_INV)               , (XC_OUT - XA * (XE_INV * XC_IN));
+                  (YC_OUT - YA * (YE_INV * YC_IN)),           (YA * YE_INV)            ];
       
           % RESPONSE MATRIX
           R(:, :, JB, IB) = AUX_INV * AUX2;
       
-          AUX3 = [(I - XA * XE_INV),    zeros(M, M)    ;
-                    zeros(M, M)    , (I - YA * YE_INV)];
+          AUX3 = [(IDEN - XA * XE_INV),    zeros(M, M)    ;
+                    zeros(M, M)    , (IDEN - YA * YE_INV)];
       
           S = [H; H];
       
