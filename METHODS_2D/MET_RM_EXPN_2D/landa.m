@@ -1,4 +1,4 @@
-% CALCULATE LANDA FOR EACH REGIONS
+% CALCULATE LANDA FOR EACH NODE
 
 function [LANDA0, ... % LANDA IN THE CURRENT NODE
           LANDAL, ... % LANDA IN THE LEFT NODE
@@ -35,8 +35,8 @@ function [LANDA0, ... % LANDA IN THE CURRENT NODE
     end
   end
   
-  LANDAL = zeros(RY,RX); LANDAR = zeros(RY,RX);
-  LANDAB = zeros(RY,RX); LANDAT = zeros(RY,RX);
+  LANDAL = zeros(J, I); LANDAR = zeros(J, I);
+  LANDAB = zeros(J, I); LANDAT = zeros(J, I);
   JB = 0;
   for ry = 1: RY
     ncy = YDOM(2, ry);
