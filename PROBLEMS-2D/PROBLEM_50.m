@@ -1,4 +1,4 @@
-% SYMMETRIC PROBLEM
+% HOMOGENEOUS MODEL PROBLEM (Dominguez et. el., 2010)
 
   % QUADRATURE ORDER
   N = 4;
@@ -8,11 +8,11 @@
          0.95];
   
   % REGIONS IN X (1. xlength; 2. xcells)
-  XDOM = [2; 
+  XDOM = [20; 
           20];
   
   % REGIONS IN Y (1. ylength; 2. ycells)
-  YDOM = [2; 
+  YDOM = [20; 
           20];
   
   % ZONE MAP Y x X ( # zona ) 
