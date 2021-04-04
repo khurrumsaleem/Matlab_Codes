@@ -216,7 +216,7 @@ function [SCALAR_FLUX, ...  % SCALAR FLUX IN EACH COLUMN FOR X
       
       % 4. BOTTOM <- TOP SWEEP
       IB = 1;
-      for rx = 1: RY
+      for rx = 1: RX
         ncx = XDOM(2,rx);
         IF = IB + ncx;
         JB = J + 1;
