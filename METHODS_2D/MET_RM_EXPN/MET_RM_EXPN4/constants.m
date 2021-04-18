@@ -56,12 +56,12 @@ function [XD0, XDB, XDT, YD0, YDL, YDR, XN0, XNB, XNT, YN0, YNL, YNR] = ...
  YN0 = zeros(J, I); YNL = zeros(J, I); YNR = zeros(J, I);
  JB = 0;
  for ry = 1: RY
-   leny = YDOM(1, ry); ncy = YDOM(2, ry); yh = leny / ncy;
+   ncy = YDOM(2, ry);
    for j = 1: ncy
      JB = JB + 1;
      IB = 0;
      for rx = 1: RX
-       lenx = XDOM(1, rx); ncx = XDOM(2, rx); xh = lenx / ncx;
+       ncx = XDOM(2, rx);
        for i = 1: ncx
          IB = IB + 1;
          XN0(JB, IB) = 1;
