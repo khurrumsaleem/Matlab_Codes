@@ -29,7 +29,7 @@ function [LANDA0, ... % LANDA IN THE CURRENT NODE
         ncx = XDOM(2, rx);
         for i = 1: ncx
           IB = IB + 1;
-          LANDA0(JB, IB) = c0;
+          LANDA0(JB, IB) = 1 - c0;
         end
       end
     end
