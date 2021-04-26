@@ -29,7 +29,7 @@ function [LANDA0, ... % LANDA IN THE CURRENT NODE
         ncx = XDOM(2, rx); val = max(vals(:, z));
         for i = 1: ncx
           IB = IB + 1;
-          LANDA0(JB, IB) = st/(2*val);
+          LANDA0(JB, IB) = 0.2*st/val;
         end
       end
     end
