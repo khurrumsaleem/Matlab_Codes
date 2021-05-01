@@ -25,7 +25,6 @@ function [LANDA0, ... % LANDA IN THE CURRENT NODE
       JB = JB + 1;
       IB = 0;
       for rx = 1: RX
-        z = ZMAP(ry, rx); st = ZON(1,z); ss = ZON(2,z);
         ncx = XDOM(2, rx);
         for i = 1: ncx
           IB = IB + 1;
