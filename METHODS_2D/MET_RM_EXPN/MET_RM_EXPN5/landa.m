@@ -26,7 +26,7 @@ function [LANDA0, ... % LANDA IN THE CURRENT NODE
       IB = 0;
       for rx = 1: RX
         z = ZMAP(ry, rx); st = ZON(1,z);
-        ncx = XDOM(2, rx); val = max(vals(:, z))
+        ncx = XDOM(2, rx); val = max(vals(:, z));
         for i = 1: ncx
           IB = IB + 1;
           LANDA0(JB, IB) = st / val;
