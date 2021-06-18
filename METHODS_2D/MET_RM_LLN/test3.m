@@ -37,7 +37,7 @@ for m = 1: M
              + AUX1 + AUX2;
   PSOL1(m) = -theta*DFLUX1(m)/(st*hj) - AUX4;
 end
-% TESTING PARTICULAR SOLUTION Y0
+% TESTING PARTICULAR SOLUTION X0
 for m = 1: M
   miu = QUAD(m,1); theta = QUAD(m,2);
   AUX0 = 0; AUX1 = 0;
@@ -51,7 +51,6 @@ for m = 1: M
   assert(comp0 < tol, 'Error: PSOL0 X0');
   assert(comp1 < tol, 'Error: PSOL1 X0');
 end
-
 
 % PARTICULAR SOLUTION Y0
 DFLUX0 = rand(M,1); DFLUX1 = rand(M,1);
@@ -86,6 +85,105 @@ for m = 1: M
   assert(comp1 < tol, 'Error: PSOL1 Y0');
 end
 
+% PARTICULAR SOLUTION X1
+DFLUX0 = rand(M,1); DFLUX1 = rand(M,1);
+PSOL0 = zeros(M,1); PSOL1 = zeros(M,1);
+st = ZON(1,1); ss = ZON(2,1); c0 = ss/st; hi = rand(1); hj = rand(1);
+for m = 1: M
+  miu = QUAD(m,1); theta = QUAD(m,2); w = QUAD(m,3);
+  AUX0 = 0; AUX1 = 0; AUX2 = 0; AUX3 = 0; AUX4 = 0; AUX5 = 0; AUX6 = 0; AUX7 = 0;
+  for k = 1: M
+    kmiu = QUAD(k,1); ktheta = QUAD(k,2); kw = QUAD(k,3);
+    AUX0 = AUX0 + 3*0.5*c0*(theta/(st*hj) + 0.5)*kw*ktheta*DFLUX0(k)/(st*hj*(1-c0));
+    AUX1 = AUX1 + 3*0.5*c0*kw*ktheta*ktheta*DFLUX0(k)/(st*hj*st*hj*(1-c0));
+    AUX2 = AUX2 + 3*0.5*c0*miu*(4*theta/(st*hj) + 1)*kw*ktheta*DFLUX1(k)/(st*hi*st*hj*(1-c0));
+    AUX3 = AUX3 + 3*c0*miu*kw*ktheta*ktheta*DFLUX1(k)/(st*hi*st*hj*st*hj*(1-c0));
+    AUX4 = AUX4 + 3*c0*(theta/(st*hj) + 0.5)*kw*kmiu*ktheta*DFLUX1(k)/(st*hi*st*hj*(1-c0));
+    AUX5 = AUX5 + 6*c0*kw*kmiu*ktheta*ktheta*DFLUX1(k)/(st*hi*st*hj*st*hj*(1-c0));
+    
+    AUX6 = AUX6 + 3*0.5*c0*(theta/(st*hj) + 0.5)*kw*ktheta*DFLUX1(k)/(st*hj*(1-c0));
+    AUX7 = AUX7 + 3*0.5*c0*kw*ktheta*ktheta*DFLUX1(k)/(st*hj*st*hj*(1-c0));
+  end
+  PSOL0(m) = - 3*theta*(1 + 2*theta/(st*hj))*DFLUX0(m)/(st*hj) ...
+             + 6*miu*theta*(1 + 4*theta/(st*hj))*DFLUX1(m)/(st*hi*st*hj) ...
+             - AUX0 - AUX1 + AUX2 + AUX3 + AUX4 + AUX5;
+  PSOL1(m) = - 3*theta*(1 + 2*theta/(st*hj))*DFLUX1(m)/(st*hj) ...
+             - AUX6 - AUX7;
+end
+% TESTING PARTICULAR SOLUTION X1
+for m = 1: M
+  miu = QUAD(m,1); theta = QUAD(m,2);
+  AUX0 = 0; AUX1 = 0; AUX2 = 0; AUX3 = 0; AUX4 = 0; AUX5 = 0;
+  for k = 1: M
+    kmiu = QUAD(k,1); ktheta = QUAD(k,2); kw = QUAD(k,3);
+    AUX0 = AUX0 + kw*PSOL0(k);
+    AUX1 = AUX1 + kw*PSOL1(k);
+    
+    AUX2 = AUX2 + 3*0.5*c0*theta*kw*ktheta*DFLUX0(k)/(st*hj*st*hj*(1-c0));
+    AUX3 = AUX3 + 3*c0*miu*theta*kw*ktheta*DFLUX1(k)/(st*hi*st*hj*st*hj*(1-c0));
+    AUX4 = AUX4 + 3*c0*theta*kw*kmiu*ktheta*DFLUX1(k)/(st*hi*st*hj*st*hj*(1-c0));
+    
+    AUX5 = AUX5 + 3*0.5*c0*theta*kw*ktheta*DFLUX1(k)/(st*hj*st*hj*(1-c0));
+  end
+  comp0 = 2*miu*PSOL1(m)/(st*hi) + PSOL0(m) - 0.25*c0*AUX0 ...
+          + 3*theta*DFLUX0(m)/(st*hj) + 6*theta*theta*DFLUX0(m)/(st*hj*st*hj) ...
+          + AUX2 - 12*miu*theta*theta*DFLUX1(m)/(st*hi*st*hj*st*hj) ...
+          - AUX3 - AUX4;
+  comp1 = PSOL1(m) - 0.25*c0*AUX1 + 3*theta*DFLUX1(m)/(st*hj)...
+          + 6*theta*theta*DFLUX1(m)/(st*hj*st*hj) + AUX5;
+  assert(comp0 < tol, 'Error: PSOL0 X1');
+  assert(comp1 < tol, 'Error: PSOL1 X1');
+end
+
+% PARTICULAR SOLUTION Y1
+DFLUX0 = rand(M,1); DFLUX1 = rand(M,1);
+PSOL0 = zeros(M,1); PSOL1 = zeros(M,1);
+st = ZON(1,1); ss = ZON(2,1); c0 = ss/st; hi = rand(1); hj = rand(1);
+for m = 1: M
+  miu = QUAD(m,1); theta = QUAD(m,2); w = QUAD(m,3);
+  AUX0 = 0; AUX1 = 0; AUX2 = 0; AUX3 = 0; AUX4 = 0; AUX5 = 0; AUX6 = 0; AUX7 = 0;
+  for k = 1: M
+    kmiu = QUAD(k,1); ktheta = QUAD(k,2); kw = QUAD(k,3);
+    AUX0 = AUX0 + 3*0.5*c0*(miu/(st*hi) + 0.5)*kw*kmiu*DFLUX0(k)/(st*hi*(1-c0));
+    AUX1 = AUX1 + 3*0.5*c0*kw*kmiu*kmiu*DFLUX0(k)/(st*hi*st*hi*(1-c0));
+    AUX2 = AUX2 + 3*0.5*c0*theta*(4*miu/(st*hi) + 1)*kw*kmiu*DFLUX1(k)/(st*hi*st*hj*(1-c0));
+    AUX3 = AUX3 + 3*c0*theta*kw*kmiu*kmiu*DFLUX1(k)/(st*hi*st*hi*st*hj*(1-c0));
+    AUX4 = AUX4 + 3*c0*(miu/(st*hi) + 0.5)*kw*kmiu*ktheta*DFLUX1(k)/(st*hi*st*hj*(1-c0));
+    AUX5 = AUX5 + 6*c0*kw*kmiu*kmiu*ktheta*DFLUX1(k)/(st*hi*st*hi*st*hj*(1-c0));
+    
+    AUX6 = AUX6 + 3*0.5*c0*(miu/(st*hi) + 0.5)*kw*kmiu*DFLUX1(k)/(st*hi*(1-c0));
+    AUX7 = AUX7 + 3*0.5*c0*kw*kmiu*kmiu*DFLUX1(k)/(st*hi*st*hi*(1-c0));
+  end
+  PSOL0(m) = - 3*miu*(1 + 2*miu/(st*hi))*DFLUX0(m)/(st*hi) ...
+             + 6*miu*theta*(1 + 4*miu/(st*hi))*DFLUX1(m)/(st*hi*st*hj) ...
+             - AUX0 - AUX1 + AUX2 + AUX3 + AUX4 + AUX5;
+  PSOL1(m) = - 3*miu*(1 + 2*miu/(st*hi))*DFLUX1(m)/(st*hi) ...
+             - AUX6 - AUX7;
+end
+% TESTING PARTICULAR SOLUTION Y1
+for m = 1: M
+  miu = QUAD(m,1); theta = QUAD(m,2);
+  AUX0 = 0; AUX1 = 0; AUX2 = 0; AUX3 = 0; AUX4 = 0; AUX5 = 0;
+  for k = 1: M
+    kmiu = QUAD(k,1); ktheta = QUAD(k,2); kw = QUAD(k,3);
+    AUX0 = AUX0 + kw*PSOL0(k);
+    AUX1 = AUX1 + kw*PSOL1(k);
+    
+    AUX2 = AUX2 + 3*0.5*c0*miu*kw*kmiu*DFLUX0(k)/(st*hi*st*hi*(1-c0));
+    AUX3 = AUX3 + 3*c0*miu*theta*kw*kmiu*DFLUX1(k)/(st*hi*st*hi*st*hj*(1-c0));
+    AUX4 = AUX4 + 3*c0*miu*kw*kmiu*ktheta*DFLUX1(k)/(st*hi*st*hi*st*hj*(1-c0));
+    
+    AUX5 = AUX5 + 3*0.5*c0*miu*kw*kmiu*DFLUX1(k)/(st*hi*st*hi*(1-c0));
+  end
+  comp0 = 2*theta*PSOL1(m)/(st*hj) + PSOL0(m) - 0.25*c0*AUX0 ...
+          + 3*miu*DFLUX0(m)/(st*hi) + 6*miu*miu*DFLUX0(m)/(st*hi*st*hi) ...
+          + AUX2 - 12*miu*miu*theta*DFLUX1(m)/(st*hi*st*hi*st*hj) ...
+          - AUX3 - AUX4;
+  comp1 = PSOL1(m) - 0.25*c0*AUX1 + 3*miu*DFLUX1(m)/(st*hi)...
+          + 6*miu*miu*DFLUX1(m)/(st*hi*st*hi) + AUX5;
+  assert(comp0 < tol, 'Error: PSOL0 X1');
+  assert(comp1 < tol, 'Error: PSOL1 X1');
+end
 
 % PARTICULAR SOLUTION
 [xvals, xvects, yvals, yvects] = SPECTRUM_XY(QUAD, chi, ZON);
