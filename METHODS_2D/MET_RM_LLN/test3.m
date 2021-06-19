@@ -81,8 +81,8 @@ for m = 1: M
   end
   comp0 = 2*theta*PSOL1(m)/(st*hj) + PSOL0(m) - 0.25*c0*AUX0 + miu*DFLUX0(m)/(st*hi);
   comp1 = PSOL1(m) - 0.25*c0*AUX1 + miu*DFLUX1(m)/(st*hi);
-  assert(comp0 < tol, 'Error: PSOL0 Y0');
-  assert(comp1 < tol, 'Error: PSOL1 Y0');
+  assert(abs(comp0) < tol, 'Error: PSOL0 Y0');
+  assert(abs(comp1) < tol, 'Error: PSOL1 Y0');
 end
 
 % PARTICULAR SOLUTION X1
@@ -131,8 +131,8 @@ for m = 1: M
           - AUX3 - AUX4;
   comp1 = PSOL1(m) - 0.25*c0*AUX1 + 3*theta*DFLUX1(m)/(st*hj)...
           + 6*theta*theta*DFLUX1(m)/(st*hj*st*hj) + AUX5;
-  assert(comp0 < tol, 'Error: PSOL0 X1');
-  assert(comp1 < tol, 'Error: PSOL1 X1');
+  assert(abs(comp0) < tol, 'Error: PSOL0 X1');
+  assert(abs(comp1) < tol, 'Error: PSOL1 X1');
 end
 
 % PARTICULAR SOLUTION Y1
@@ -181,18 +181,19 @@ for m = 1: M
           - AUX3 - AUX4;
   comp1 = PSOL1(m) - 0.25*c0*AUX1 + 3*miu*DFLUX1(m)/(st*hi)...
           + 6*miu*miu*DFLUX1(m)/(st*hi*st*hi) + AUX5;
-  assert(comp0 < tol, 'Error: PSOL0 X1');
-  assert(comp1 < tol, 'Error: PSOL1 X1');
+  assert(abs(comp0) < tol, 'Error: PSOL0 X1');
+  assert(abs(comp1) < tol, 'Error: PSOL1 X1');
 end
 
-% PARTICULAR SOLUTION
 [xvals, xvects, yvals, yvects] = SPECTRUM_XY(QUAD, chi, ZON);
-INV = inv(xvects);
 
-st = 1; hj = 1;
+% PARTICULAR SOLUTION X2
+alfa = rand(M,1);
+st = ZON(1,1); ss = ZON(2,1); c0 = ss/st; hi = rand(1); hj = rand(1);
+INV = inv(xvects);
 NABLA = zeros(M,M); F0 = zeros(M,M); F1 = zeros(M,M);
 for m = 1: M
-  miu = QUAD(m,1); theta = QUAD(M,2);
+  miu = QUAD(m,1); theta = QUAD(m,2);
   for k = 1: M
     NABLA(m,k) = 6*theta*xvects(m,k)/(hj*miu);
     if (xvals(m,1) == xvals(k,1))
@@ -207,13 +208,59 @@ end
 B = INV*NABLA;
 landa = xvects*(B.*F0);
 gama = xvects*(B.*F1);
+% TEST PARTICULAR SOLUTION X2
+for m = 1: M
+  miu = QUAD(m,1); theta = QUAD(m,2);
+  for k = 1: M
+    AUX0 = 0; AUX1 = 0;
+    for n = 1: M
+      nw = QUAD(n,3);
+      AUX0 = AUX0 + 0.25*c0*nw*alfa(k)*landa(n,k);
+      AUX1 = AUX1 + 0.25*c0*nw*alfa(k)*gama(n,k);
+    end
+    comp0 = miu*alfa(k)*landa(m,k)/xvals(k,1) + miu*alfa(k)*gama(m,k)/st ...
+            + alfa(k)*landa(m,k) - AUX0 - 6*theta*alfa(k)*xvects(m,k,1)/(st*hj);
+    comp1 = miu*alfa(k)*gama(m,k)/xvals(k,1) + alfa(k)*gama(m,k) - AUX1;
+    assert(abs(comp0) < tol, "PSOL0 X2 ERROR");
+    assert(abs(comp1) < tol, "PSOL1 X2 ERROR");
+  end
+end
 
-% TEST PARTICULAR SOLUTION
-for k = 1: M
-  comp0 = st.*landa(:,k)./xvals(k,1) + gama(:,k) - A(:,:,1)*landa(:,k) - NABLA(:,k);
-  comp1 = st.*gama(:,k)./(xvals(k,1)) - A(:,:,1)*gama(:,k);
-  for n = 1: M
-    assert(comp0(n) < tol, 'Particular solution');
-    assert(comp1(n) < tol, 'Particular solution');
+% PARTICULAR SOLUTION Y2
+alfa = rand(M,1);
+st = ZON(1,1); ss = ZON(2,1); c0 = ss/st; hi = rand(1); hj = rand(1);
+INV = inv(yvects);
+NABLA = zeros(M,M); F0 = zeros(M,M); F1 = zeros(M,M);
+for m = 1: M
+  miu = QUAD(m,1); theta = QUAD(m,2);
+  for k = 1: M
+    NABLA(m,k) = 6*miu*yvects(m,k)/(hi*theta);
+    if (yvals(m,1) == yvals(k,1))
+      F0(m,k) = 0;
+      F1(m,k) = 1;
+    else
+      F0(m,k) = yvals(m,1)*yvals(k,1)/(st*(yvals(m,1) - yvals(k,1)));
+      F1(m,k) = 0;
+    end
+  end
+end
+B = INV*NABLA;
+landa = yvects*(B.*F0);
+gama = yvects*(B.*F1);
+% TEST PARTICULAR SOLUTION Y2
+for m = 1: M
+  miu = QUAD(m,1); theta = QUAD(m,2);
+  for k = 1: M
+    AUX0 = 0; AUX1 = 0;
+    for n = 1: M
+      nw = QUAD(n,3);
+      AUX0 = AUX0 + 0.25*c0*nw*alfa(k)*landa(n,k);
+      AUX1 = AUX1 + 0.25*c0*nw*alfa(k)*gama(n,k);
+    end
+    comp0 = theta*alfa(k)*landa(m,k)/yvals(k,1) + theta*alfa(k)*gama(m,k)/st ...
+            + alfa(k)*landa(m,k) - AUX0 - 6*miu*alfa(k)*yvects(m,k,1)/(st*hi);
+    comp1 = theta*alfa(k)*gama(m,k)/yvals(k,1) + alfa(k)*gama(m,k) - AUX1;
+    assert(abs(comp0) < tol, "PSOL0 X2 ERROR");
+    assert(abs(comp1) < tol, "PSOL1 X2 ERROR");
   end
 end
