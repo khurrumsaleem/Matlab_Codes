@@ -2,7 +2,7 @@
 
 M = N * (N + 2) / 2; I = sum(XDOM(2, :)); J = sum(YDOM(2, :));
 NZ = length(ZON(1,:));
-tol = 10e-10;
+tol = 10e-4;
 
 A = zeros(M, M, NZ);
 for z = 1: NZ
@@ -48,8 +48,8 @@ for m = 1: M
   end
   comp0 = 2*miu*PSOL1(m)/(st*hi) + PSOL0(m) - 0.25*c0*AUX0 + theta*DFLUX0(m)/(st*hj);
   comp1 = PSOL1(m) - 0.25*c0*AUX1 + theta*DFLUX1(m)/(st*hj);
-  assert(comp0 < tol, 'Error: PSOL0 X0');
-  assert(comp1 < tol, 'Error: PSOL1 X0');
+  assert(abs(comp0) < tol, 'Error: PSOL0 X0');
+  assert(abs(comp1) < tol, 'Error: PSOL1 X0');
 end
 
 % PARTICULAR SOLUTION Y0
@@ -181,8 +181,8 @@ for m = 1: M
           - AUX3 - AUX4;
   comp1 = PSOL1(m) - 0.25*c0*AUX1 + 3*miu*DFLUX1(m)/(st*hi)...
           + 6*miu*miu*DFLUX1(m)/(st*hi*st*hi) + AUX5;
-  assert(abs(comp0) < tol, 'Error: PSOL0 X1');
-  assert(abs(comp1) < tol, 'Error: PSOL1 X1');
+  assert(abs(comp0) < tol, 'Error: PSOL0 Y1');
+  assert(abs(comp1) < tol, 'Error: PSOL1 Y1');
 end
 
 [xvals, xvects, yvals, yvects] = SPECTRUM_XY(QUAD, chi, ZON);
@@ -260,7 +260,7 @@ for m = 1: M
     comp0 = theta*alfa(k)*landa(m,k)/yvals(k,1) + theta*alfa(k)*gama(m,k)/st ...
             + alfa(k)*landa(m,k) - AUX0 - 6*miu*alfa(k)*yvects(m,k,1)/(st*hi);
     comp1 = theta*alfa(k)*gama(m,k)/yvals(k,1) + alfa(k)*gama(m,k) - AUX1;
-    assert(abs(comp0) < tol, "PSOL0 X2 ERROR");
-    assert(abs(comp1) < tol, "PSOL1 X2 ERROR");
+    assert(abs(comp0) < tol, "PSOL0 Y2 ERROR");
+    assert(abs(comp1) < tol, "PSOL1 Y2 ERROR");
   end
 end
