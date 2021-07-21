@@ -190,70 +190,282 @@ function [R, S, F0, F1, SP] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
                                - 3 * m_miu * (1 + 2 * m_miu / (st * hx)) / (st * hx);
           end
           
-          if (k <= M / 4)
-            FX0(m,k) = AX0(m,k);
-            FX1IN(m,k) = AX1_PLUS(m,k);
-            FX1OUT(m,k) = AX1_MINUS(m,k);
-            
-            FY0(m,k) = AY0(m,k);
-            FY1IN(m,k) = AY1_PLUS(m,k);
-            FY1OUT(m,k) = AY1_MINUS(m,k);
-            
-            FXX0(m,k) = AXX0(m,k);
-            FXX1IN(m,k) = AXX1_PLUS(m,k);
-            FXX1OUT(m,k) = AXX1_MINUS(m,k);
-            
-            FYY0(m,k) = AYY0(m,k);
-            FYY1IN(m,k) = AYY1_PLUS(m,k);
-            FYY1OUT(m,k) = AYY1_MINUS(m,k);
-          elseif (k > M / 4 && k <= M / 2)
-            FX0(m,k) = AX0(m,k);
-            FX1IN(m,k) = AX1_MINUS(m,k);
-            FX1OUT(m,k) = AX1_PLUS(m,k);
-            
-            FY0(m,k) = - AY0(m,k);
-            FY1IN(m,k) = - AY1_PLUS(m,k);
-            FY1OUT(m,k) = - AY1_MINUS(m,k);
-            
-            FXX0(m,k) = AXX0(m,k);
-            FXX1IN(m,k) = AXX1_MINUS(m,k);
-            FXX1OUT(m,k) = AXX1_PLUS(m,k);
-            
-            FYY0(m,k) = - AYY0(m,k);
-            FYY1IN(m,k) = - AYY1_PLUS(m,k);
-            FYY1OUT(m,k) = - AYY1_MINUS(m,k);
-          elseif (k > M / 2 && k <= 3 * M / 4)
-            FX0(m,k) = - AX0(m,k);
-            FX1IN(m,k) = - AX1_MINUS(m,k);
-            FX1OUT(m,k) = - AX1_PLUS(m,k);
-            
-            FY0(m,k) = - AY0(m,k);
-            FY1IN(m,k) = - AY1_MINUS(m,k);
-            FY1OUT(m,k) = - AY1_PLUS(m,k);
-            
-            FXX0(m,k) = - AXX0(m,k);
-            FXX1IN(m,k) = - AXX1_MINUS(m,k);
-            FXX1OUT(m,k) = - AXX1_PLUS(m,k);
-            
-            FYY0(m,k) = - AYY0(m,k);
-            FYY1IN(m,k) = - AYY1_MINUS(m,k);
-            FYY1OUT(m,k) = - AYY1_PLUS(m,k);
-          elseif (k > 3 * M / 4 && k <= M)
-            FX0(m,k) = - AX0(m,k);
-            FX1IN(m,k) = - AX1_PLUS(m,k);
-            FX1OUT(m,k) = - AX1_MINUS(m,k);
-            
-            FY0(m,k) = AY0(m,k);
-            FY1IN(m,k) = AY1_MINUS(m,k);
-            FY1OUT(m,k) = AY1_PLUS(m,k);
-            
-            FXX0(m,k) = - AXX0(m,k);
-            FXX1IN(m,k) = - AXX1_PLUS(m,k);
-            FXX1OUT(m,k) = - AXX1_MINUS(m,k);
-            
-            FYY0(m,k) = AYY0(m,k);
-            FYY1IN(m,k) = AYY1_MINUS(m,k);
-            FYY1OUT(m,k) = AYY1_PLUS(m,k);
+          if (m <= M/4) % IQ
+              if (k <= M / 4)
+                FX0(m,k) = AX0(m,k);
+                FX1IN(m,k) = AX1_PLUS(m,k);
+                FX1OUT(m,k) = AX1_MINUS(m,k);
+
+                FY0(m,k) = AY0(m,k);
+                FY1IN(m,k) = AY1_PLUS(m,k);
+                FY1OUT(m,k) = AY1_MINUS(m,k);
+
+                FXX0(m,k) = AXX0(m,k);
+                FXX1IN(m,k) = AXX1_PLUS(m,k);
+                FXX1OUT(m,k) = AXX1_MINUS(m,k);
+
+                FYY0(m,k) = AYY0(m,k);
+                FYY1IN(m,k) = AYY1_PLUS(m,k);
+                FYY1OUT(m,k) = AYY1_MINUS(m,k);
+              elseif (k > M / 4 && k <= M / 2)
+                FX0(m,k) = AX0(m,k);
+                FX1IN(m,k) = AX1_PLUS(m,k);
+                FX1OUT(m,k) = AX1_MINUS(m,k);
+
+                FY0(m,k) = - AY0(m,k);
+                FY1IN(m,k) = - AY1_PLUS(m,k);
+                FY1OUT(m,k) = - AY1_MINUS(m,k);
+
+                FXX0(m,k) = AXX0(m,k);
+                FXX1IN(m,k) = AXX1_PLUS(m,k);
+                FXX1OUT(m,k) = AXX1_MINUS(m,k);
+
+                FYY0(m,k) = - AYY0(m,k);
+                FYY1IN(m,k) = - AYY1_PLUS(m,k);
+                FYY1OUT(m,k) = - AYY1_MINUS(m,k);
+              elseif (k > M / 2 && k <= 3 * M / 4)
+                FX0(m,k) = - AX0(m,k);
+                FX1IN(m,k) = - AX1_PLUS(m,k);
+                FX1OUT(m,k) = - AX1_MINUS(m,k);
+
+                FY0(m,k) = - AY0(m,k);
+                FY1IN(m,k) = - AY1_PLUS(m,k);
+                FY1OUT(m,k) = - AY1_MINUS(m,k);
+
+                FXX0(m,k) = - AXX0(m,k);
+                FXX1IN(m,k) = - AXX1_PLUS(m,k);
+                FXX1OUT(m,k) = - AXX1_MINUS(m,k);
+
+                FYY0(m,k) = - AYY0(m,k);
+                FYY1IN(m,k) = - AYY1_PLUS(m,k);
+                FYY1OUT(m,k) = - AYY1_MINUS(m,k);
+              elseif (k > 3 * M / 4 && k <= M)
+                FX0(m,k) = - AX0(m,k);
+                FX1IN(m,k) = - AX1_PLUS(m,k);
+                FX1OUT(m,k) = - AX1_MINUS(m,k);
+
+                FY0(m,k) = AY0(m,k);
+                FY1IN(m,k) = AY1_PLUS(m,k);
+                FY1OUT(m,k) = AY1_MINUS(m,k);
+
+                FXX0(m,k) = - AXX0(m,k);
+                FXX1IN(m,k) = - AXX1_PLUS(m,k);
+                FXX1OUT(m,k) = - AXX1_MINUS(m,k);
+
+                FYY0(m,k) = AYY0(m,k);
+                FYY1IN(m,k) = AYY1_PLUS(m,k);
+                FYY1OUT(m,k) = AYY1_MINUS(m,k);
+              end
+          elseif (m > M/4 && m <= M/2) % IIQ
+              if (k <= M / 4)
+                FX0(m,k) = AX0(m,k);
+                FX1IN(m,k) = AX1_MINUS(m,k);
+                FX1OUT(m,k) = AX1_PLUS(m,k);
+                
+                FY0(m,k) = AY0(m,k);
+                FY1IN(m,k) = AY1_PLUS(m,k);
+                FY1OUT(m,k) = AY1_MINUS(m,k);
+                
+                FXX0(m,k) = AXX0(m,k);
+                FXX1IN(m,k) = AXX1_MINUS(m,k);
+                FXX1OUT(m,k) = AXX1_PLUS(m,k);
+                
+                FYY0(m,k) = AYY0(m,k);
+                FYY1IN(m,k) = AYY1_PLUS(m,k);
+                FYY1OUT(m,k) = AYY1_MINUS(m,k);
+                
+              elseif (k > M / 4 && k <= M / 2)
+                FX0(m,k) = AX0(m,k);
+                FX1IN(m,k) = AX1_MINUS(m,k);
+                FX1OUT(m,k) = AX1_PLUS(m,k);
+                
+                FY0(m,k) = - AY0(m,k);
+                FY1IN(m,k) = - AY1_PLUS(m,k);
+                FY1OUT(m,k) = - AY1_MINUS(m,k);
+                
+                FXX0(m,k) = AXX0(m,k);
+                FXX1IN(m,k) = AXX1_MINUS(m,k);
+                FXX1OUT(m,k) = AXX1_PLUS(m,k);
+                
+                FYY0(m,k) = - AYY0(m,k);
+                FYY1IN(m,k) = - AYY1_PLUS(m,k);
+                FYY1OUT(m,k) = - AYY1_MINUS(m,k);
+                
+              elseif (k > M / 2 && k <= 3 * M / 4)
+                FX0(m,k) = - AX0(m,k);
+                FX1IN(m,k) = - AX1_MINUS(m,k);
+                FX1OUT(m,k) = - AX1_PLUS(m,k);
+                
+                FY0(m,k) = - AY0(m,k);
+                FY1IN(m,k) = - AY1_PLUS(m,k);
+                FY1OUT(m,k) = - AY1_MINUS(m,k);
+                
+                FXX0(m,k) = - AXX0(m,k);
+                FXX1IN(m,k) = - AXX1_MINUS(m,k);
+                FXX1OUT(m,k) = - AXX1_PLUS(m,k);
+                
+                FYY0(m,k) = - AYY0(m,k);
+                FYY1IN(m,k) = - AYY1_PLUS(m,k);
+                FYY1OUT(m,k) = - AYY1_MINUS(m,k);
+                
+              elseif (k > 3 * M / 4 && k <= M)
+                FX0(m,k) = - AX0(m,k);
+                FX1IN(m,k) = - AX1_MINUS(m,k);
+                FX1OUT(m,k) = - AX1_PLUS(m,k);
+                
+                FY0(m,k) = AY0(m,k);
+                FY1IN(m,k) = AY1_PLUS(m,k);
+                FY1OUT(m,k) = AY1_MINUS(m,k);
+                
+                FXX0(m,k) = - AXX0(m,k);
+                FXX1IN(m,k) = - AXX1_MINUS(m,k);
+                FXX1OUT(m,k) = - AXX1_PLUS(m,k);
+                
+                FYY0(m,k) = AYY0(m,k);
+                FYY1IN(m,k) = AYY1_PLUS(m,k);
+                FYY1OUT(m,k) = AYY1_MINUS(m,k);
+                
+              end
+          elseif (M > M/2 && m <= 3*M/4) % IIIQ
+              if (k <= M / 4)
+                FX0(m,k) = AX0(m,k);
+                FX1IN(m,k) = AX1_MINUS(m,k);
+                FX1OUT(m,k) = AX1_PLUS(m,k);
+                
+                FY0(m,k) = AY0(m,k);
+                FY1IN(m,k) = AY1_MINUS(m,k);
+                FY1OUT(m,k) = AY1_PLUS(m,k);
+                
+                FXX0(m,k) = AXX0(m,k);
+                FXX1IN(m,k) = AXX1_MINUS(m,k);
+                FXX1OUT(m,k) = AXX1_PLUS(m,k);
+                
+                FYY0(m,k) = AYY0(m,k);
+                FYY1IN(m,k) = AYY1_MINUS(m,k);
+                FYY1OUT(m,k) = AYY1_PLUS(m,k);
+                
+              elseif (k > M / 4 && k <= M / 2)
+                FX0(m,k) = AX0(m,k);
+                FX1IN(m,k) = AX1_MINUS(m,k);
+                FX1OUT(m,k) = AX1_PLUS(m,k);
+                
+                FY0(m,k) = - AY0(m,k);
+                FY1IN(m,k) = - AY1_MINUS(m,k);
+                FY1OUT(m,k) = - AY1_PLUS(m,k);
+                
+                FXX0(m,k) = AXX0(m,k);
+                FXX1IN(m,k) = AXX1_MINUS(m,k);
+                FXX1OUT(m,k) = AXX1_PLUS(m,k);
+                
+                FYY0(m,k) = - AYY0(m,k);
+                FYY1IN(m,k) = - AYY1_MINUS(m,k);
+                FYY1OUT(m,k) = - AYY1_PLUS(m,k);
+                
+              elseif (k > M / 2 && k <= 3 * M / 4)
+                FX0(m,k) = - AX0(m,k);
+                FX1IN(m,k) = - AX1_MINUS(m,k);
+                FX1OUT(m,k) = - AX1_PLUS(m,k);
+                
+                FY0(m,k) = - AY0(m,k);
+                FY1IN(m,k) = - AY1_MINUS(m,k);
+                FY1OUT(m,k) = - AY1_PLUS(m,k);
+                
+                FXX0(m,k) = - AXX0(m,k);
+                FXX1IN(m,k) = - AXX1_MINUS(m,k);
+                FXX1OUT(m,k) = - AXX1_PLUS(m,k);
+                
+                FYY0(m,k) = - AYY0(m,k);
+                FYY1IN(m,k) = - AYY1_MINUS(m,k);
+                FYY1OUT(m,k) = - AYY1_PLUS(m,k);
+                
+              elseif (k > 3 * M / 4 && k <= M)
+                FX0(m,k) = - AX0(m,k);
+                FX1IN(m,k) = - AX1_MINUS(m,k);
+                FX1OUT(m,k) = - AX1_PLUS(m,k);
+                
+                FY0(m,k) = AY0(m,k);
+                FY1IN(m,k) = AY1_MINUS(m,k);
+                FY1OUT(m,k) = AY1_PLUS(m,k);
+                
+                FXX0(m,k) = - AXX0(m,k);
+                FXX1IN(m,k) = - AXX1_MINUS(m,k);
+                FXX1OUT(m,k) = - AXX1_PLUS(m,k);
+                
+                FYY0(m,k) = AYY0(m,k);
+                FYY1IN(m,k) = AYY1_MINUS(m,k);
+                FYY1OUT(m,k) = AYY1_PLUS(m,k);
+                
+              end
+          elseif (M > 3*M/4 && m <= M) % IVQ
+              if (k <= M / 4)
+                FX0(m,k) = AX0(m,k);
+                FX1IN(m,k) = AX1_PLUS(m,k);
+                FX1OUT(m,k) = AX1_MINUS(m,k);
+                
+                FY0(m,k) = AY0(m,k);
+                FY1IN(m,k) = AY1_MINUS(m,k);
+                FY1OUT(m,k) = AY1_PLUS(m,k);
+                
+                FXX0(m,k) = AXX0(m,k);
+                FXX1IN(m,k) = AXX1_PLUS(m,k);
+                FXX1OUT(m,k) = AXX1_MINUS(m,k);
+                
+                FYY0(m,k) = AYY0(m,k);
+                FYY1IN(m,k) = AYY1_MINUS(m,k);
+                FYY1OUT(m,k) = AYY1_PLUS(m,k);
+                
+              elseif (k > M / 4 && k <= M / 2)
+                FX0(m,k) = AX0(m,k);
+                FX1IN(m,k) = AX1_PLUS(m,k);
+                FX1OUT(m,k) = AX1_MINUS(m,k);
+                
+                FY0(m,k) = - AY0(m,k);
+                FY1IN(m,k) = - AY1_MINUS(m,k);
+                FY1OUT(m,k) = - AY1_PLUS(m,k);
+                
+                FXX0(m,k) = AXX0(m,k);
+                FXX1IN(m,k) = AXX1_PLUS(m,k);
+                FXX1OUT(m,k) = AXX1_MINUS(m,k);
+                
+                FYY0(m,k) = - AYY0(m,k);
+                FYY1IN(m,k) = - AYY1_MINUS(m,k);
+                FYY1OUT(m,k) = - AYY1_PLUS(m,k);
+                
+              elseif (k > M / 2 && k <= 3 * M / 4)
+                FX0(m,k) = - AX0(m,k);
+                FX1IN(m,k) = - AX1_PLUS(m,k);
+                FX1OUT(m,k) = - AX1_MINUS(m,k);
+                
+                FY0(m,k) = - AY0(m,k);
+                FY1IN(m,k) = - AY1_MINUS(m,k);
+                FY1OUT(m,k) = - AY1_PLUS(m,k);
+                
+                FXX0(m,k) = - AXX0(m,k);
+                FXX1IN(m,k) = - AXX1_PLUS(m,k);
+                FXX1OUT(m,k) = - AXX1_MINUS(m,k);
+                
+                FYY0(m,k) = - AYY0(m,k);
+                FYY1IN(m,k) = - AYY1_MINUS(m,k);
+                FYY1OUT(m,k) = - AYY1_PLUS(m,k);
+                
+              elseif (k > 3 * M / 4 && k <= M)
+                FX0(m,k) = - AX0(m,k);
+                FX1IN(m,k) = - AX1_PLUS(m,k);
+                FX1OUT(m,k) = - AX1_MINUS(m,k);
+                
+                FY0(m,k) = AY0(m,k);
+                FY1IN(m,k) = AY1_MINUS(m,k);
+                FY1OUT(m,k) = AY1_PLUS(m,k);
+                
+                FXX0(m,k) = - AXX0(m,k);
+                FXX1IN(m,k) = - AXX1_PLUS(m,k);
+                FXX1OUT(m,k) = - AXX1_MINUS(m,k);
+                
+                FYY0(m,k) = AYY0(m,k);
+                FYY1IN(m,k) = AYY1_MINUS(m,k);
+                FYY1OUT(m,k) = AYY1_PLUS(m,k);
+                
+              end
           end
           
         end
@@ -366,7 +578,7 @@ function [R, S, F0, F1, SP] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
       MXX3 = RXOUT * RXIN_INV;
       MXX4 = - RXOUT * RXIN_INV * (FXX1IN - (LAMBDA_XIN + GAMA_XIN) * RXIN_INV * FX1IN) ...
              + FXX1OUT - (LAMBDA_XOUT + GAMA_XOUT) * RXIN_INV * FX1IN;
-      MXX5 = - RXOUT * RXIN_INV * (FXX0 - (LAMBDA_XIN + GAMA_XIN) * RXIN_INV * SX) ...
+      MXX5 = - RXOUT * RXIN_INV * (SXX - (LAMBDA_XIN + GAMA_XIN) * RXIN_INV * SX) ...
              + SXX - (LAMBDA_XOUT + GAMA_XOUT) * RXIN_INV * SX;
          
       % EQUATION 4
@@ -377,7 +589,7 @@ function [R, S, F0, F1, SP] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
              + FYY1OUT - (LAMBDA_YOUT + GAMA_YOUT) * RYIN_INV * FY1IN;
       MYY4 = RYOUT * RYIN_INV;
       MYY5 = - RYOUT * RYIN_INV * (SYY - (LAMBDA_YIN + GAMA_YIN) * RYIN_INV * SY) ...
-             + SYY - (LAMNDA_YOUT + GAMA_YOUT) * RYIN_INV * SY;
+             + SYY - (LAMBDA_YOUT + GAMA_YOUT) * RYIN_INV * SY;
       
       IN = [MX1,   -MX2,  ZERO,  -MX4;
             -MY1,  MY2,   -MY3,  ZERO;
