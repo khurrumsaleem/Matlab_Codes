@@ -42,3 +42,15 @@ for m = 1: M
   sum = sum + w * miu * theta * theta;
 end
 fprintf("SUM(w * miu * theta^2) = %.5f for N = %d\n", sum, N);
+
+% SUM(w * miu * xvects * xvects)
+[xvals, xvects, yvals, yvects] = SPECTRUM_XY(QUAD, chi, ZON);
+
+for k = 1: M
+  sum = 0;
+  for m = 1: M
+    miu = QUAD(m, 1); theta = QUAD(m, 2); w = QUAD(m, 3);
+    sum = sum + w * miu * xvects(m,k,1) * xvects(m,k,1);    
+  end
+  fprintf("SUM(w * miu * xvect^2) = %.5f for N = %d\n", sum, N);
+end

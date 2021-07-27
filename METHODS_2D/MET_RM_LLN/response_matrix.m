@@ -46,7 +46,7 @@ function [R, S, F0, F1, SP] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
         
         m_miu = QUAD(m, 1); m_theta = QUAD(m, 2);
         
-        % MATRICES FOR MEAN ANGULAR FLUX
+        % MATRICES FOR AVERAGE ANGULAR FLUX
         SP(m,ry,rx) = Q * (1 + c0 / (1 - c0)) / st;
         for k = 1: M
           k_miu = QUAD(k,1); k_theta = QUAD(k,2); k_w = QUAD(k,3);
@@ -139,13 +139,13 @@ function [R, S, F0, F1, SP] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
                            + 3 * c0 * m_miu * k_w * k_theta * k_theta / (st * hx * st * hy * st * hy * (1 - c0)) ...
                            + 3 * c0 * k_w * k_miu * k_theta * (0.5 + m_theta / (st * hy)) / (st * hx * st * hy * (1 - c0)) ...
                            + 6 * c0 * k_w * k_miu * k_theta * k_theta / (st * hx * st * hy * st * hy * (1 - c0)) ...
-                           + 3 * 0.5 * c0 * k_w * k_theta * (0.5 + 2 * m_theta / (st * hy)) / (st * hy * (1 - c0)) ...
+                           + 3 * 0.5 * c0 * k_w * k_theta * (0.5 + m_theta / (st * hy)) / (st * hy * (1 - c0)) ...
                            + 3 * 0.5 * c0 * k_w * k_theta * k_theta / (st * hy * st * hy * (1 - c0));
           AXX1_MINUS(m,k) = 3 * 0.5 * c0 * m_miu * k_w * k_theta * (1 + 4 * m_theta / (st * hy)) / (st * hx * st * hy * (1 - c0)) ...
                             + 3 * c0 * m_miu * k_w * k_theta * k_theta / (st * hx * st * hy * st * hy * (1 - c0)) ...
                             + 3 * c0 * k_w * k_miu * k_theta * (0.5 + m_theta / (st * hy)) / (st * hx * st * hy * (1 - c0)) ...
                             + 6 * c0 * k_w * k_miu * k_theta * k_theta / (st * hx * st * hy * st * hy * (1 - c0)) ...
-                            - 3 * 0.5 * c0 * k_w * k_theta * (0.5 + 2 * m_theta / (st * hy)) / (st * hy * (1 - c0)) ...
+                            - 3 * 0.5 * c0 * k_w * k_theta * (0.5 + m_theta / (st * hy)) / (st * hy * (1 - c0)) ...
                             - 3 * 0.5 * c0 * k_w * k_theta * k_theta / (st * hy * st * hy * (1 - c0));
                        
           AYY0(m,k) = - 3 * 0.5 * c0 * k_w * k_miu * (0.5 + m_miu / (st*hx)) / (st * hx * (1 - c0)) ...
@@ -154,13 +154,13 @@ function [R, S, F0, F1, SP] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
                            + 3 * c0 * m_theta * k_w * k_miu * k_miu / (st * hx * st * hx * st * hy * (1 - c0)) ...
                            + 3 * c0 * k_w * k_miu * k_theta * (0.5 + m_miu / (st * hx)) / (st * hx * st * hy * (1 - c0)) ...
                            + 6 * c0 * k_w * k_miu * k_miu * k_theta / (st * hx * st * hx * st * hy * (1 - c0)) ...
-                           + 3 * 0.5 * c0 * k_w * k_miu * (0.5 + 2 * m_miu / (st * hx)) / (st * hx * (1 - c0)) ...
+                           + 3 * 0.5 * c0 * k_w * k_miu * (0.5 + m_miu / (st * hx)) / (st * hx * (1 - c0)) ...
                            + 3 * 0.5 * c0 * k_w * k_miu * k_miu / (st * hx * st * hx * (1 - c0));
           AYY1_MINUS(m,k) = 3 * 0.5 * c0 * m_theta * k_w * k_miu * (1 + 4 * m_miu / (st * hx)) / (st * hx * st * hy * (1 - c0)) ...
                             + 3 * c0 * m_theta * k_w * k_miu * k_miu / (st * hx * st * hx * st * hy * (1 - c0)) ...
                             + 3 * c0 * k_w * k_miu * k_theta * (0.5 + m_miu / (st * hx)) / (st * hx * st * hy * (1 - c0)) ...
                             + 6 * c0 * k_w * k_miu * k_miu * k_theta / (st * hx * st * hx * st * hy * (1 - c0)) ...
-                            - 3 * 0.5 * c0 * k_w * k_miu * (0.5 + 2 * m_miu / (st * hx)) / (st * hx * (1 - c0)) ...
+                            - 3 * 0.5 * c0 * k_w * k_miu * (0.5 + m_miu / (st * hx)) / (st * hx * (1 - c0)) ...
                             - 3 * 0.5 * c0 * k_w * k_miu * k_miu / (st * hx * st * hx * (1 - c0));
           
           
@@ -326,7 +326,7 @@ function [R, S, F0, F1, SP] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
                 FYY1OUT(m,k) = AYY1_MINUS(m,k);
                 
               end
-          elseif (M > M/2 && m <= 3*M/4) % IIIQ
+          elseif (m > M/2 && m <= 3*M/4) % IIIQ
               if (k <= M / 4)
                 FX0(m,k) = AX0(m,k);
                 FX1IN(m,k) = AX1_MINUS(m,k);
@@ -396,7 +396,7 @@ function [R, S, F0, F1, SP] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
                 FYY1OUT(m,k) = AYY1_PLUS(m,k);
                 
               end
-          elseif (M > 3*M/4 && m <= M) % IVQ
+          elseif (m > 3*M/4 && m <= M) % IVQ
               if (k <= M / 4)
                 FX0(m,k) = AX0(m,k);
                 FX1IN(m,k) = AX1_PLUS(m,k);
@@ -559,6 +559,11 @@ function [R, S, F0, F1, SP] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
         end
       end
       
+      LAMBDA_XIN = zeros(M, M); GAMA_XIN = zeros(M, M);
+      LAMBDA_XOUT = zeros(M, M); GAMA_XOUT = zeros(M, M);
+      LAMBDA_YIN = zeros(M, M); GAMA_YIN = zeros(M, M);
+      LAMBDA_YOUT = zeros(M, M); GAMA_YOUT = zeros(M, M);
+      
       % EQUATION 1
       MX1 = RXOUT * RXIN_INV;
       MX2 = FX0 - (RXOUT * RXIN_INV) * FX0;
@@ -598,7 +603,8 @@ function [R, S, F0, F1, SP] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
           
       OUT = [IDEN,  -MX2,  ZERO,  -MX4;
              -MY1,  IDEN,  -MY3,  ZERO;
-             ZERO,  -MXX2, IDEN,  -MXX4;
+             ZERO,  -MXX2, IDEN,  -MXX4;,
+             -
              -MYY1, ZERO,  -MYY3, IDEN];
          
       OUT_INV = inv(OUT);
