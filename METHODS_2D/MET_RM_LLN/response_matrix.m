@@ -514,8 +514,8 @@ function [R, S, F0, F1, SP] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
       ylanda = yvects(:,:,z)*(YB.*YF0);
       ygama = yvects(:,:,z)*(YB.*YF1);
       for m = 1: M
-        for k = 1: M
-          if (m <= M/4)
+        if (m <= M/4)
+          for k = 1: M
             LAMBDA_XIN(m,k) = xlanda(m,k) * exp(- 0.5 * st * hx / xvals(k,z));
             LAMBDA_XOUT(m,k) = xlanda(m,k) * exp(0.5 * st * hx / xvals(k,z));
             GAMA_XIN(m,k) = - 0.5 * hx * xgama(m,k) * exp(- 0.5 * st * hx / xvals(k,z));
@@ -525,7 +525,9 @@ function [R, S, F0, F1, SP] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
             LAMBDA_YOUT(m,k) = ylanda(m,k) * exp(0.5 * st * hy / yvals(k,z));
             GAMA_YIN(m,k) = - 0.5 * hy * ygama(m,k) * exp(- 0.5 * st * hy / yvals(k,z));
             GAMA_YOUT(m,k) = 0.5 * hy * ygama(m,k) * exp(0.5 * st * hy / yvals(k,z));
-          elseif (m > M/4 && m <= M/2)
+          end
+        elseif (m > M/4 && m <= M/2)
+          for k = 1: M
             LAMBDA_XIN(m,k) = xlanda(m,k) * exp(0.5 * st * hx / xvals(k,z));
             LAMBDA_XOUT(m,k) = xlanda(m,k) * exp(- 0.5 * st * hx / xvals(k,z));
             GAMA_XIN(m,k) = 0.5 * hx * xgama(m,k) * exp(0.5 * st * hx / xvals(k,z));
@@ -535,7 +537,9 @@ function [R, S, F0, F1, SP] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
             LAMBDA_YOUT(m,k) = ylanda(m,k) * exp(0.5 * st * hy / yvals(k,z));
             GAMA_YIN(m,k) = - 0.5 * hy * ygama(m,k) * exp(- 0.5 * st * hy / yvals(k,z));
             GAMA_YOUT(m,k) = 0.5 * hy * ygama(m,k) * exp(0.5 * st * hy / yvals(k,z));
-          elseif (m > M/2 && m <= 3*M/4)
+          end
+        elseif (m > M/2 && m <= 3*M/4)
+          for k = 1: M
             LAMBDA_XIN(m,k) = xlanda(m,k) * exp(0.5 * st * hx / xvals(k,z));
             LAMBDA_XOUT(m,k) = xlanda(m,k) * exp(- 0.5 * st * hx / xvals(k,z));
             GAMA_XIN(m,k) = 0.5 * hx * xgama(m,k) * exp(0.5 * st * hx / xvals(k,z));
@@ -545,7 +549,9 @@ function [R, S, F0, F1, SP] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
             LAMBDA_YOUT(m,k) = ylanda(m,k) * exp(- 0.5 * st * hy / yvals(k,z));
             GAMA_YIN(m,k) = 0.5 * hy * ygama(m,k) * exp(0.5 * st * hy / yvals(k,z));
             GAMA_YOUT(m,k) = - 0.5 * hy * ygama(m,k) * exp(- 0.5 * st * hy / yvals(k,z));
-          elseif (m > 3*M/4 && m <= M)
+          end
+        elseif (m > 3*M/4 && m <= M)
+          for k = 1: M
             LAMBDA_XIN(m,k) = xlanda(m,k) * exp(- 0.5 * st * hx / xvals(k,z));
             LAMBDA_XOUT(m,k) = xlanda(m,k) * exp(0.5 * st * hx / xvals(k,z));
             GAMA_XIN(m,k) = - 0.5 * hx * xgama(m,k) * exp(- 0.5 * st * hx / xvals(k,z));
@@ -559,10 +565,10 @@ function [R, S, F0, F1, SP] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
         end
       end
       
-      LAMBDA_XIN = zeros(M, M); GAMA_XIN = zeros(M, M);
-      LAMBDA_XOUT = zeros(M, M); GAMA_XOUT = zeros(M, M);
-      LAMBDA_YIN = zeros(M, M); GAMA_YIN = zeros(M, M);
-      LAMBDA_YOUT = zeros(M, M); GAMA_YOUT = zeros(M, M);
+      %LAMBDA_XIN = zeros(M, M); GAMA_XIN = zeros(M, M);
+      %LAMBDA_XOUT = zeros(M, M); GAMA_XOUT = zeros(M, M);
+      %LAMBDA_YIN = zeros(M, M); GAMA_YIN = zeros(M, M);
+      %LAMBDA_YOUT = zeros(M, M); GAMA_YOUT = zeros(M, M);
       
       % EQUATION 1
       MX1 = RXOUT * RXIN_INV;
@@ -603,8 +609,7 @@ function [R, S, F0, F1, SP] = response_matrix(N, ZON, XDOM, YDOM, ZMAP, QMAP)
           
       OUT = [IDEN,  -MX2,  ZERO,  -MX4;
              -MY1,  IDEN,  -MY3,  ZERO;
-             ZERO,  -MXX2, IDEN,  -MXX4;,
-             -
+             ZERO,  -MXX2, IDEN,  -MXX4;
              -MYY1, ZERO,  -MYY3, IDEN];
          
       OUT_INV = inv(OUT);
