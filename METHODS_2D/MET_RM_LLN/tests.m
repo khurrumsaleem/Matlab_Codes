@@ -1,5 +1,5 @@
 % TESTING QUADRATURE PROPERTIES
-N = 4;
+N = 6;
 M = N * (N + 2) / 2;
 [QUAD, chi] = LQN_2D(N);
 
@@ -53,4 +53,14 @@ for k = 1: M
     sum = sum + w * miu * xvects(m,k,1) * xvects(m,k,1);    
   end
   fprintf("SUM(w * miu * xvect^2) = %.5f for N = %d\n", sum, N);
+end
+
+for k = 1: M
+  sum = 0;
+  for m = 1: M
+    miu = QUAD(m, 1); theta = QUAD(m, 2); w = QUAD(m, 3);
+    sum = sum + w * theta * xvects(m,k,1) / miu;    
+  end
+  fprintf("miu = %.5f, val = %.5f\n", miu, xvals(k,1));
+  fprintf("SUM(w * theta * xvect / miu) = %.5f for N = %d\n", sum, N);
 end

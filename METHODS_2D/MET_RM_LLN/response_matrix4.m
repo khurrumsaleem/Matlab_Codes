@@ -1,0 +1,752 @@
+% CONSTRUCTION OF THE RESPONSE MATRIX R AND THE SOURCE VECTOR P FOR THE
+% ITERATIVE PROCESS
+
+function [R, S, F0, F1, SP] = response_matrix4(N, ZON, XDOM, YDOM, ZMAP, QMAP)
+  
+  % INITIALIZE VARIABLES
+  NRX = length(XDOM(1, :)); NRY = length(YDOM(1, :));
+  [QUAD, chi] = LQN_2D(N);
+  [xvals, xvects, yvals, yvects] = SPECTRUM_XY(QUAD, chi, ZON);
+  
+  % RESPONSE MATRIX AND SOURCE VECTOR
+  M = N * (N + 2) / 2;
+  R = vpa(zeros(4 * M, 4 * M, NRY, NRX)); S = vpa(zeros(4 * M, NRY, NRX));
+  F0 = vpa(zeros(M, M, NRY, NRX)); F1 = vpa(zeros(M, M, NRY, NRX));
+  SP = vpa(zeros(M, NRY, NRX));
+  
+  % DEFINE EACH MATRIX PER REGION
+  for ry = 1: NRY
+    for rx = 1: NRX
+        
+      % AUXILIARY MATRICES
+      RXIN = vpa(zeros(M, M)); RXOUT = vpa(zeros(M, M)); SX = vpa(zeros(M,1));
+      FX0 = vpa(zeros(M, M)); FX1IN = vpa(zeros(M, M)); FX1OUT = vpa(zeros(M, M));
+      AX0 = vpa(zeros(M, M)); AX1_PLUS = vpa(zeros(M, M)); AX1_MINUS = vpa(zeros(M, M));
+      
+      RYIN = vpa(zeros(M, M)); RYOUT = vpa(zeros(M, M)); SY = vpa(zeros(M, 1));
+      FY0 = vpa(zeros(M, M)); FY1IN = vpa(zeros(M, M)); FY1OUT = vpa(zeros(M, M));
+      AY0 = vpa(zeros(M, M)); AY1_PLUS = vpa(zeros(M, M)); AY1_MINUS = vpa(zeros(M, M));
+      
+      SXX = vpa(zeros(M,1)); XNABLA = vpa(zeros(M,M)); XF0 = vpa(zeros(M,M)); XF1 = vpa(zeros(M,M));
+      FXX0 = vpa(zeros(M, M)); FXX1IN = vpa(zeros(M, M)); FXX1OUT = vpa(zeros(M, M));
+      FXX3 = vpa(zeros(M, M)); FXX4IN = vpa(zeros(M, M)); FXX4OUT = vpa(zeros(M, M));
+      AXX0 = vpa(zeros(M, M)); AXX1_PLUS = vpa(zeros(M, M)); AXX1_MINUS = vpa(zeros(M, M));
+      AXX3 = vpa(zeros(M, M)); AXX4_PLUS = vpa(zeros(M, M)); AXX4_MINUS = vpa(zeros(M, M));
+      
+      SYY = vpa(zeros(M,1)); YNABLA = vpa(zeros(M,M)); YF0 = vpa(zeros(M,M)); YF1 = vpa(zeros(M,M));
+      FYY0 = vpa(zeros(M, M)); FYY1IN = vpa(zeros(M, M)); FYY1OUT = vpa(zeros(M, M));
+      FYY3 = vpa(zeros(M, M)); FYY4IN = vpa(zeros(M, M)); FYY4OUT = vpa(zeros(M, M));
+      AYY0 = vpa(zeros(M, M)); AYY1_PLUS = vpa(zeros(M, M)); AYY1_MINUS = vpa(zeros(M, M));
+      AYY3 = vpa(zeros(M, M)); AYY4_PLUS = vpa(zeros(M, M)); AYY4_MINUS = vpa(zeros(M, M));
+    
+      % AUXILIARY CONSTANTS
+      lenx = vpa(XDOM(1, rx)); ntcx = vpa(XDOM(2, rx)); hx = lenx / ntcx;
+      leny = vpa(YDOM(1, ry)); ntcy = vpa(YDOM(2, ry)); hy = leny / ntcy;
+      z = vpa(ZMAP(ry, rx)); st = vpa(ZON(1, z)); ss = vpa(ZON(2, z)); c0 = ss/st;
+      Q = vpa(QMAP(ry, rx));
+      
+      % DIRECTION LOOP
+      for m = 1: M
+        
+        m_miu = vpa(QUAD(m, 1)); m_theta = vpa(QUAD(m, 2));
+        
+        % MATRICES FOR AVERAGE ANGULAR FLUX
+        SP(m,ry,rx) = Q * (1 + c0 / (1 - c0)) / st;
+        for k = 1: M
+          k_miu = vpa(QUAD(k,1)); k_theta = vpa(QUAD(k,2)); k_w = vpa(QUAD(k,3));
+          F0(m,k,ry,rx) = 0.25 * c0 * k_w * k_miu / (st * hx * (1-c0));
+          F1(m,k,ry,rx) = 0.25 * c0 * k_w * k_theta / (st * hy * (1-c0));
+          if (m == k)
+            F0(m,k,ry,rx) = F0(m,k,ry,rx) + m_miu / (st * hx);
+            F1(m,k,ry,rx) = F1(m,k,ry,rx) + m_theta / (st * hy);
+          end
+          if (k <= M/4)
+            F0(m,k,ry,rx) = F0(m,k,ry,rx);
+            F1(m,k,ry,rx) = F1(m,k,ry,rx);
+          elseif (k > M/4 && k <= M/2)
+            F0(m,k,ry,rx) = - F0(m,k,ry,rx);
+            F1(m,k,ry,rx) = F1(m,k,ry,rx);
+          elseif (k > M/2 && k <= 3*M/4)
+            F0(m,k,ry,rx) = - F0(m,k,ry,rx);
+            F1(m,k,ry,rx) = - F1(m,k,ry,rx);
+          elseif (k > 3*M/4 && k <= M)
+            F0(m,k,ry,rx) = F0(m,k,ry,rx);
+            F1(m,k,ry,rx) = - F1(m,k,ry,rx);
+          end
+        end
+          
+        % PRIMARY MATRICES
+        if (m <= M / 4) % ROWS
+            
+          for k = 1: M  % COLUMNS
+            RXOUT(m, k) = xvects(m, k, z) * exp(0.5 * st * hx / xvals(k, z));
+            RXIN(m, k) = xvects(m, k, z) * exp(- 0.5 * st * hx / xvals(k, z));
+            
+            RYOUT(m, k) = yvects(m, k, z) * exp(0.5 * st * hy / yvals(k, z));
+            RYIN(m, k) = yvects(m, k, z) * exp(- 0.5 * st * hy / yvals(k, z));
+          end
+          
+        elseif (m > M / 4 && m <= M / 2) % ROWS
+            
+          for k = 1: M % COLUMNS
+            RXOUT(m, k) = xvects(m, k, z) * exp(- 0.5 * st * hx / xvals(k, z));
+            RXIN(m, k) = xvects(m, k, z) * exp(0.5 * st * hx / xvals(k, z));
+            
+            RYOUT(m, k) = yvects(m, k, z) * exp(0.5 * st * hy / yvals(k, z));
+            RYIN(m, k) = yvects(m, k, z) * exp(- 0.5 * st * hy / yvals(k, z));
+          end
+          
+        elseif (m > M / 2 && m <= 3 * M / 4) % ROWS
+            
+          for k = 1: M % COLUMNS
+            RXOUT(m, k) = xvects(m, k, z) * exp(- 0.5 * st * hx / xvals(k, z));
+            RXIN(m, k) = xvects(m, k, z) * exp(0.5 * st * hx / xvals(k, z));
+            
+            RYOUT(m, k) = yvects(m, k, z) * exp(- 0.5 * st * hy / yvals(k, z));
+            RYIN(m, k) = yvects(m, k, z) * exp(0.5 * st * hy / yvals(k, z));
+          end
+          
+        elseif (m > 3 * M / 4 && m <= M) % ROWS
+            
+          for k = 1: M % COLUMNS
+            RXOUT(m, k) = xvects(m, k, z) * exp(0.5 * st * hx / xvals(k, z));
+            RXIN(m, k) = xvects(m, k, z) * exp(- 0.5 * st * hx / xvals(k, z));
+            
+            RYOUT(m, k) = yvects(m, k, z) * exp(- 0.5 * st * hy / yvals(k, z));
+            RYIN(m, k) = yvects(m, k, z) * exp(0.5 * st * hy / yvals(k, z));
+          end
+          
+        end
+        
+        % SOURCE MATRICES
+        SX(m) = Q / (st * (1 - c0));
+        SY(m) = Q / (st * (1 - c0));
+        SXX(m) = 6 * m_theta * Q / (st * hy * st * (1 - c0));
+        SYY(m) = 6 * m_miu * Q / (st * hx * st * (1 - c0));
+        
+        % SECONDARY MATRICES
+        for k = 1: M % COLUMNS
+            
+          k_miu = vpa(QUAD(k, 1)); k_theta = vpa(QUAD(k, 2)); k_w = vpa(QUAD(k, 3));
+          
+          AX0(m,k) = - 0.25 * c0 * k_w * k_theta / (st * hy * (1 - c0));
+          AX1_PLUS(m,k) = 0.5 * c0 * k_w * k_theta * (k_miu / (st * hx) + m_miu / (st * hx) + 0.5) / (st * hy * (1 - c0));
+          AX1_MINUS(m,k) = 0.5 * c0 * k_w * k_theta * (k_miu / (st * hx) + m_miu / (st * hx) - 0.5) / (st * hy * (1 - c0));
+          
+          AY0(m,k) = - 0.25 * c0 * k_w * k_miu / (st * hx * (1 - c0));
+          AY1_PLUS(m,k) = 0.5 * c0 * k_w * k_miu * (k_theta / (st * hy) + m_theta / (st * hy) + 0.5) / (st * hx * (1 - c0));
+          AY1_MINUS(m,k) = 0.5 * c0 * k_w * k_miu * (k_theta / (st * hy) + m_theta / (st * hy) - 0.5) / (st * hx * (1 - c0));
+          
+          AXX0(m,k) = - 3 * 0.5 * c0 * m_theta * k_w * k_theta / (st * hy * st * hy * (1 - c0)) ...
+                      - 3 * 0.5 * c0 * k_w * k_theta * k_theta / (st * hy * st * hy * (1 - c0));
+          AXX1_PLUS(m,k) = 6 * c0 * m_miu * m_theta * k_w * k_theta / (st * hx * st * hy * st * hy * (1 - c0)) ...
+                           + 3 * c0 * m_miu * k_w * k_theta * k_theta / (st * hx * st * hy * st * hy * (1 - c0)) ...
+                           + 3 * c0 * m_theta * k_w * k_miu * k_theta / (st * hx * st * hy * st * hy * (1 - c0)) ...
+                           + 6 * c0 * k_w * k_miu * k_theta * k_theta / (st * hx * st * hy * st * hy * (1 - c0)) ...
+                           + 3 * 0.5 * c0 * m_theta * k_w * k_theta / (st * hy * st * hy * (1 - c0)) ...
+                           + 3 * 0.5 * c0 * k_w * k_theta * k_theta / (st * hy * st * hy * (1 - c0));
+          AXX1_MINUS(m,k) = 6 * c0 * m_miu * m_theta * k_w * k_theta / (st * hx * st * hy * st * hy * (1 - c0)) ...
+                           + 3 * c0 * m_miu * k_w * k_theta * k_theta / (st * hx * st * hy * st * hy * (1 - c0)) ...
+                           + 3 * c0 * m_theta * k_w * k_miu * k_theta / (st * hx * st * hy * st * hy * (1 - c0)) ...
+                           + 6 * c0 * k_w * k_miu * k_theta * k_theta / (st * hx * st * hy * st * hy * (1 - c0)) ...
+                           - 3 * 0.5 * c0 * m_theta * k_w * k_theta / (st * hy * st * hy * (1 - c0)) ...
+                           - 3 * 0.5 * c0 * k_w * k_theta * k_theta / (st * hy * st * hy * (1 - c0));
+          AXX3(m,k) = - 3 * 0.25 * c0 * k_w * k_theta / (st * hy * (1 - c0));
+          AXX4_PLUS(m,k) = 3 * 0.5 * c0 * m_miu * k_w * k_theta / (st * hx * st * hy * (1 - c0)) ...
+                           + 3 * 0.5 * c0 * k_w * k_miu * k_theta / (st * hx * st * hy * (1 - c0)) ...
+                           + 3 * 0.25 * c0 * k_w * k_theta / (st * hy * (1 - c0));
+          AXX4_MINUS(m,k) = 3 * 0.5 * c0 * m_miu * k_w * k_theta / (st * hx * st * hy * (1 - c0)) ...
+                           + 3 * 0.5 * c0 * k_w * k_miu * k_theta / (st * hx * st * hy * (1 - c0)) ...
+                           - 3 * 0.25 * c0 * k_w * k_theta / (st * hy * (1 - c0));
+                       
+          AYY0(m,k) = - 3 * 0.5 * c0 * m_miu * k_w * k_miu / (st * hx * st * hx * (1 - c0)) ...
+                      - 3 * 0.5 * c0 * k_w * k_miu * k_miu / (st * hx * st * hx * (1 - c0));
+          AYY1_PLUS(m,k) = 6 * c0 * m_miu * m_theta * k_w * k_miu / (st * hx * st * hx * st * hy * (1 - c0)) ...
+                           + 3 * c0 * m_theta * k_w * k_miu * k_miu / (st * hx * st * hx * st * hy * (1 - c0)) ...
+                           + 3 * c0 * m_miu * k_w * k_miu * k_theta / (st * hx * st * hx * st * hy * (1 - c0)) ...
+                           + 6 * c0 * k_w * k_miu * k_miu * k_theta / (st * hx * st * hx * st * hy * (1 - c0)) ...
+                           + 3 * 0.5 * m_miu * c0 * k_w * k_miu / (st * hx * st * hx * (1 - c0)) ...
+                           + 3 * 0.5 * c0 * k_w * k_miu * k_miu / (st * hx * st * hx * (1 - c0));
+          AYY1_MINUS(m,k) = 6 * c0 * m_miu * m_theta * k_w * k_miu / (st * hx * st * hx * st * hy * (1 - c0)) ...
+                           + 3 * c0 * m_theta * k_w * k_miu * k_miu / (st * hx * st * hx * st * hy * (1 - c0)) ...
+                           + 3 * c0 * m_miu * k_w * k_miu * k_theta / (st * hx * st * hx * st * hy * (1 - c0)) ...
+                           + 6 * c0 * k_w * k_miu * k_miu * k_theta / (st * hx * st * hx * st * hy * (1 - c0)) ...
+                           - 3 * 0.5 * m_miu * c0 * k_w * k_miu / (st * hx * st * hx * (1 - c0)) ...
+                           - 3 * 0.5 * c0 * k_w * k_miu * k_miu / (st * hx * st * hx * (1 - c0));
+          AYY3(m,k) = - 3 * 0.25 * c0 * k_w * k_miu / (st * hx * (1 - c0));
+          AYY4_PLUS(m,k) = 3 * 0.5 * c0 * m_theta * k_w * k_miu / (st * hx * st * hy * (1 - c0)) ...
+                           + 3 * 0.5 * c0 * k_w * k_miu * k_theta / (st * hx * st * hy * (1 - c0)) ...
+                           + 3 * 0.25 * c0 * k_w * k_miu/ (st * hx * (1 - c0));
+          AYY4_MINUS(m,k) = 3 * 0.5 * c0 * m_theta * k_w * k_miu / (st * hx * st * hy * (1 - c0)) ...
+                           + 3 * 0.5 * c0 * k_w * k_miu * k_theta / (st * hx * st * hy * (1 - c0)) ...
+                           - 3 * 0.25 * c0 * k_w * k_miu/ (st * hx * (1 - c0));
+          
+          
+          if (k == m)
+              AX0(m,k) = AX0(m,k) - m_theta / (st * hy);
+              AX1_PLUS(m,k) = AX1_PLUS(m,k) + 2 * m_theta * (m_miu / (st * hx) + 0.5) / (st * hy);
+              AX1_MINUS(m,k) = AX1_MINUS(m,k) + 2 * m_theta * (m_miu / (st * hx) - 0.5) / (st * hy);
+              
+              AY0(m,k) = AY0(m,k) - m_miu / (st * hx);
+              AY1_PLUS(m,k) = AY1_PLUS(m,k) + 2 * m_miu * (m_theta / (st * hy) + 0.5) / (st * hx);
+              AY1_MINUS(m,k) = AY1_MINUS(m,k) + 2 * m_miu * (m_theta / (st * hy) - 0.5) / (st * hx);
+              
+              AXX0(m,k) = AXX0(m,k) - 6 * m_theta * m_theta / (st * hy * st * hy);
+              AXX1_PLUS(m,k) = AXX1_PLUS(m,k) ...
+                               + 24 * m_miu * m_theta * m_theta / (st * hx * st * hy * st * hy) ...
+                               + 6 * m_theta * m_theta / (st * hy * st * hy);
+              AXX1_MINUS(m,k) = AXX1_MINUS(m,k) ...
+                               + 24 * m_miu * m_theta * m_theta / (st * hx * st * hy * st * hy) ...
+                               - 6 * m_theta * m_theta / (st * hy * st * hy);
+              AXX3(m,k) = AXX3(m,k) - 3 * m_theta / (st * hy);
+              AXX4_PLUS(m,k) = AXX4_PLUS(m,k) + 6 * m_miu * m_theta / (st * hx * st * hy) ...
+                               + 3 * m_theta / (st * hy);
+              AXX4_MINUS(m,k) = AXX4_MINUS(m,k) + 6 * m_miu * m_theta / (st * hx * st * hy) ...
+                               - 3 * m_theta / (st * hy);
+                           
+              AYY0(m,k) = AYY0(m,k) - 6 * m_miu * m_miu / (st * hx * st * hx);
+              AYY1_PLUS(m,k) = AYY1_PLUS(m,k) ...
+                               + 24 * m_miu * m_miu * m_theta / (st * hx * st * hx * st * hy) ...
+                               + 6 * m_miu * m_miu / (st * hx * st * hx);
+              AYY1_MINUS(m,k) = AYY1_MINUS(m,k) ...
+                               + 24 * m_miu * m_miu * m_theta / (st * hx * st * hx * st * hy) ...
+                               - 6 * m_miu * m_miu / (st * hx * st * hx);
+              AYY3(m,k) = AYY3(m,k) - 3 * m_miu / (st * hx);
+              AYY4_PLUS(m,k) = AYY4_PLUS(m,k) + 6 * m_miu * m_theta / (st * hx * st * hy) ...
+                               + 3 * m_miu / (st * hx);
+              AYY4_MINUS(m,k) = AYY4_MINUS(m,k) + 6 * m_miu * m_theta / (st * hx * st * hy) ...
+                               - 3 * m_miu / (st * hx);
+          end
+          
+          if (m <= M/4) % IQ
+              if (k <= M / 4)
+                FX0(m,k) = AX0(m,k);
+                FX1IN(m,k) = AX1_PLUS(m,k);
+                FX1OUT(m,k) = AX1_MINUS(m,k);
+
+                FY0(m,k) = AY0(m,k);
+                FY1IN(m,k) = AY1_PLUS(m,k);
+                FY1OUT(m,k) = AY1_MINUS(m,k);
+
+                FXX0(m,k) = AXX0(m,k);
+                FXX1IN(m,k) = AXX1_PLUS(m,k);
+                FXX1OUT(m,k) = AXX1_MINUS(m,k);
+                FXX3(m,k) = AXX3(m,k);
+                FXX4IN(m,k) = AXX4_PLUS(m,k);
+                FXX4OUT(m,k) = AXX4_MINUS(m,k);
+
+                FYY0(m,k) = AYY0(m,k);
+                FYY1IN(m,k) = AYY1_PLUS(m,k);
+                FYY1OUT(m,k) = AYY1_MINUS(m,k);
+                FYY3(m,k) = AYY3(m,k);
+                FYY4IN(m,k) = AYY4_PLUS(m,k);
+                FYY4OUT(m,k) = AYY4_MINUS(m,k);
+              elseif (k > M / 4 && k <= M / 2)
+                FX0(m,k) = AX0(m,k);
+                FX1IN(m,k) = AX1_PLUS(m,k);
+                FX1OUT(m,k) = AX1_MINUS(m,k);
+
+                FY0(m,k) = - AY0(m,k);
+                FY1IN(m,k) = - AY1_PLUS(m,k);
+                FY1OUT(m,k) = - AY1_MINUS(m,k);
+
+                FXX0(m,k) = AXX0(m,k);
+                FXX1IN(m,k) = AXX1_PLUS(m,k);
+                FXX1OUT(m,k) = AXX1_MINUS(m,k);
+                FXX3(m,k) = AXX3(m,k);
+                FXX4IN(m,k) = AXX4_PLUS(m,k);
+                FXX4OUT(m,k) = AXX4_MINUS(m,k);
+
+                FYY0(m,k) = - AYY0(m,k);
+                FYY1IN(m,k) = - AYY1_PLUS(m,k);
+                FYY1OUT(m,k) = - AYY1_MINUS(m,k);
+                FYY3(m,k) = AYY3(m,k);
+                FYY4IN(m,k) = AYY4_PLUS(m,k);
+                FYY4OUT(m,k) = AYY4_MINUS(m,k);
+              elseif (k > M / 2 && k <= 3 * M / 4)
+                FX0(m,k) = - AX0(m,k);
+                FX1IN(m,k) = - AX1_PLUS(m,k);
+                FX1OUT(m,k) = - AX1_MINUS(m,k);
+
+                FY0(m,k) = - AY0(m,k);
+                FY1IN(m,k) = - AY1_PLUS(m,k);
+                FY1OUT(m,k) = - AY1_MINUS(m,k);
+
+                FXX0(m,k) = - AXX0(m,k);
+                FXX1IN(m,k) = - AXX1_PLUS(m,k);
+                FXX1OUT(m,k) = - AXX1_MINUS(m,k);
+                FXX3(m,k) = AXX3(m,k);
+                FXX4IN(m,k) = AXX4_PLUS(m,k);
+                FXX4OUT(m,k) = AXX4_MINUS(m,k);
+
+                FYY0(m,k) = - AYY0(m,k);
+                FYY1IN(m,k) = - AYY1_PLUS(m,k);
+                FYY1OUT(m,k) = - AYY1_MINUS(m,k);
+                FYY3(m,k) = AYY3(m,k);
+                FYY4IN(m,k) = AYY4_PLUS(m,k);
+                FYY4OUT(m,k) = AYY4_MINUS(m,k);
+              elseif (k > 3 * M / 4 && k <= M)
+                FX0(m,k) = - AX0(m,k);
+                FX1IN(m,k) = - AX1_PLUS(m,k);
+                FX1OUT(m,k) = - AX1_MINUS(m,k);
+
+                FY0(m,k) = AY0(m,k);
+                FY1IN(m,k) = AY1_PLUS(m,k);
+                FY1OUT(m,k) = AY1_MINUS(m,k);
+
+                FXX0(m,k) = - AXX0(m,k);
+                FXX1IN(m,k) = - AXX1_PLUS(m,k);
+                FXX1OUT(m,k) = - AXX1_MINUS(m,k);
+                FXX3(m,k) = AXX3(m,k);
+                FXX4IN(m,k) = AXX4_PLUS(m,k);
+                FXX4OUT(m,k) = AXX4_MINUS(m,k);
+
+                FYY0(m,k) = AYY0(m,k);
+                FYY1IN(m,k) = AYY1_PLUS(m,k);
+                FYY1OUT(m,k) = AYY1_MINUS(m,k);
+                FYY3(m,k) = AYY3(m,k);
+                FYY4IN(m,k) = AYY4_PLUS(m,k);
+                FYY4OUT(m,k) = AYY4_MINUS(m,k);
+              end
+          elseif (m > M/4 && m <= M/2) % IIQ
+              if (k <= M / 4)
+                FX0(m,k) = AX0(m,k);
+                FX1IN(m,k) = AX1_MINUS(m,k);
+                FX1OUT(m,k) = AX1_PLUS(m,k);
+                
+                FY0(m,k) = AY0(m,k);
+                FY1IN(m,k) = AY1_PLUS(m,k);
+                FY1OUT(m,k) = AY1_MINUS(m,k);
+                
+                FXX0(m,k) = AXX0(m,k);
+                FXX1IN(m,k) = AXX1_MINUS(m,k);
+                FXX1OUT(m,k) = AXX1_PLUS(m,k);
+                FXX3(m,k) = AXX3(m,k);
+                FXX4IN(m,k) = AXX4_MINUS(m,k);
+                FXX4OUT(m,k) = AXX4_PLUS(m,k);
+                
+                FYY0(m,k) = AYY0(m,k);
+                FYY1IN(m,k) = AYY1_PLUS(m,k);
+                FYY1OUT(m,k) = AYY1_MINUS(m,k);
+                FYY3(m,k) = AYY3(m,k);
+                FYY4IN(m,k) = AYY4_PLUS(m,k);
+                FYY4OUT(m,k) = AYY4_MINUS(m,k);
+                
+              elseif (k > M / 4 && k <= M / 2)
+                FX0(m,k) = AX0(m,k);
+                FX1IN(m,k) = AX1_MINUS(m,k);
+                FX1OUT(m,k) = AX1_PLUS(m,k);
+                
+                FY0(m,k) = - AY0(m,k);
+                FY1IN(m,k) = - AY1_PLUS(m,k);
+                FY1OUT(m,k) = - AY1_MINUS(m,k);
+                
+                FXX0(m,k) = AXX0(m,k);
+                FXX1IN(m,k) = AXX1_MINUS(m,k);
+                FXX1OUT(m,k) = AXX1_PLUS(m,k);
+                FXX3(m,k) = AXX3(m,k);
+                FXX4IN(m,k) = AXX4_MINUS(m,k);
+                FXX4OUT(m,k) = AXX4_PLUS(m,k);
+                
+                FYY0(m,k) = - AYY0(m,k);
+                FYY1IN(m,k) = - AYY1_PLUS(m,k);
+                FYY1OUT(m,k) = - AYY1_MINUS(m,k);
+                FYY3(m,k) = AYY3(m,k);
+                FYY4IN(m,k) = AYY4_PLUS(m,k);
+                FYY4OUT(m,k) = AYY4_MINUS(m,k);
+                
+              elseif (k > M / 2 && k <= 3 * M / 4)
+                FX0(m,k) = - AX0(m,k);
+                FX1IN(m,k) = - AX1_MINUS(m,k);
+                FX1OUT(m,k) = - AX1_PLUS(m,k);
+                
+                FY0(m,k) = - AY0(m,k);
+                FY1IN(m,k) = - AY1_PLUS(m,k);
+                FY1OUT(m,k) = - AY1_MINUS(m,k);
+                
+                FXX0(m,k) = - AXX0(m,k);
+                FXX1IN(m,k) = - AXX1_MINUS(m,k);
+                FXX1OUT(m,k) = - AXX1_PLUS(m,k);
+                FXX3(m,k) = AXX3(m,k);
+                FXX4IN(m,k) = AXX4_MINUS(m,k);
+                FXX4OUT(m,k) = AXX4_PLUS(m,k);
+                
+                FYY0(m,k) = - AYY0(m,k);
+                FYY1IN(m,k) = - AYY1_PLUS(m,k);
+                FYY1OUT(m,k) = - AYY1_MINUS(m,k);
+                FYY3(m,k) = AYY3(m,k);
+                FYY4IN(m,k) = AYY4_PLUS(m,k);
+                FYY4OUT(m,k) = AYY4_MINUS(m,k);
+                
+              elseif (k > 3 * M / 4 && k <= M)
+                FX0(m,k) = - AX0(m,k);
+                FX1IN(m,k) = - AX1_MINUS(m,k);
+                FX1OUT(m,k) = - AX1_PLUS(m,k);
+                
+                FY0(m,k) = AY0(m,k);
+                FY1IN(m,k) = AY1_PLUS(m,k);
+                FY1OUT(m,k) = AY1_MINUS(m,k);
+                
+                FXX0(m,k) = - AXX0(m,k);
+                FXX1IN(m,k) = - AXX1_MINUS(m,k);
+                FXX1OUT(m,k) = - AXX1_PLUS(m,k);
+                FXX3(m,k) = AXX3(m,k);
+                FXX4IN(m,k) = AXX4_MINUS(m,k);
+                FXX4OUT(m,k) = AXX4_PLUS(m,k);
+                
+                FYY0(m,k) = AYY0(m,k);
+                FYY1IN(m,k) = AYY1_PLUS(m,k);
+                FYY1OUT(m,k) = AYY1_MINUS(m,k);
+                FYY3(m,k) = AYY3(m,k);
+                FYY4IN(m,k) = AYY4_PLUS(m,k);
+                FYY4OUT(m,k) = AYY4_MINUS(m,k);
+                
+              end
+          elseif (m > M/2 && m <= 3*M/4) % IIIQ
+              if (k <= M / 4)
+                FX0(m,k) = AX0(m,k);
+                FX1IN(m,k) = AX1_MINUS(m,k);
+                FX1OUT(m,k) = AX1_PLUS(m,k);
+                
+                FY0(m,k) = AY0(m,k);
+                FY1IN(m,k) = AY1_MINUS(m,k);
+                FY1OUT(m,k) = AY1_PLUS(m,k);
+                
+                FXX0(m,k) = AXX0(m,k);
+                FXX1IN(m,k) = AXX1_MINUS(m,k);
+                FXX1OUT(m,k) = AXX1_PLUS(m,k);
+                FXX3(m,k) = AXX3(m,k);
+                FXX4IN(m,k) = AXX4_MINUS(m,k);
+                FXX4OUT(m,k) = AXX4_PLUS(m,k);
+                
+                FYY0(m,k) = AYY0(m,k);
+                FYY1IN(m,k) = AYY1_MINUS(m,k);
+                FYY1OUT(m,k) = AYY1_PLUS(m,k);
+                FYY3(m,k) = AYY3(m,k);
+                FYY4IN(m,k) = AYY4_MINUS(m,k);
+                FYY4OUT(m,k) = AYY4_PLUS(m,k);
+                
+              elseif (k > M / 4 && k <= M / 2)
+                FX0(m,k) = AX0(m,k);
+                FX1IN(m,k) = AX1_MINUS(m,k);
+                FX1OUT(m,k) = AX1_PLUS(m,k);
+                
+                FY0(m,k) = - AY0(m,k);
+                FY1IN(m,k) = - AY1_MINUS(m,k);
+                FY1OUT(m,k) = - AY1_PLUS(m,k);
+                
+                FXX0(m,k) = AXX0(m,k);
+                FXX1IN(m,k) = AXX1_MINUS(m,k);
+                FXX1OUT(m,k) = AXX1_PLUS(m,k);
+                FXX3(m,k) = AXX3(m,k);
+                FXX4IN(m,k) = AXX4_MINUS(m,k);
+                FXX4OUT(m,k) = AXX4_PLUS(m,k);
+                
+                FYY0(m,k) = - AYY0(m,k);
+                FYY1IN(m,k) = - AYY1_MINUS(m,k);
+                FYY1OUT(m,k) = - AYY1_PLUS(m,k);
+                FYY3(m,k) = AYY3(m,k);
+                FYY4IN(m,k) = AYY4_MINUS(m,k);
+                FYY4OUT(m,k) = AYY4_PLUS(m,k);
+                
+              elseif (k > M / 2 && k <= 3 * M / 4)
+                FX0(m,k) = - AX0(m,k);
+                FX1IN(m,k) = - AX1_MINUS(m,k);
+                FX1OUT(m,k) = - AX1_PLUS(m,k);
+                
+                FY0(m,k) = - AY0(m,k);
+                FY1IN(m,k) = - AY1_MINUS(m,k);
+                FY1OUT(m,k) = - AY1_PLUS(m,k);
+                
+                FXX0(m,k) = - AXX0(m,k);
+                FXX1IN(m,k) = - AXX1_MINUS(m,k);
+                FXX1OUT(m,k) = - AXX1_PLUS(m,k);
+                FXX3(m,k) = AXX3(m,k);
+                FXX4IN(m,k) = AXX4_MINUS(m,k);
+                FXX4OUT(m,k) = AXX4_PLUS(m,k);
+                
+                FYY0(m,k) = - AYY0(m,k);
+                FYY1IN(m,k) = - AYY1_MINUS(m,k);
+                FYY1OUT(m,k) = - AYY1_PLUS(m,k);
+                FYY3(m,k) = AYY3(m,k);
+                FYY4IN(m,k) = AYY4_MINUS(m,k);
+                FYY4OUT(m,k) = AYY4_PLUS(m,k);
+                
+              elseif (k > 3 * M / 4 && k <= M)
+                FX0(m,k) = - AX0(m,k);
+                FX1IN(m,k) = - AX1_MINUS(m,k);
+                FX1OUT(m,k) = - AX1_PLUS(m,k);
+                
+                FY0(m,k) = AY0(m,k);
+                FY1IN(m,k) = AY1_MINUS(m,k);
+                FY1OUT(m,k) = AY1_PLUS(m,k);
+                
+                FXX0(m,k) = - AXX0(m,k);
+                FXX1IN(m,k) = - AXX1_MINUS(m,k);
+                FXX1OUT(m,k) = - AXX1_PLUS(m,k);
+                FXX3(m,k) = AXX3(m,k);
+                FXX4IN(m,k) = AXX4_MINUS(m,k);
+                FXX4OUT(m,k) = AXX4_PLUS(m,k);
+                
+                FYY0(m,k) = AYY0(m,k);
+                FYY1IN(m,k) = AYY1_MINUS(m,k);
+                FYY1OUT(m,k) = AYY1_PLUS(m,k);
+                FYY3(m,k) = AYY3(m,k);
+                FYY4IN(m,k) = AYY4_MINUS(m,k);
+                FYY4OUT(m,k) = AYY4_PLUS(m,k);
+                
+              end
+          elseif (m > 3*M/4 && m <= M) % IVQ
+              if (k <= M / 4)
+                FX0(m,k) = AX0(m,k);
+                FX1IN(m,k) = AX1_PLUS(m,k);
+                FX1OUT(m,k) = AX1_MINUS(m,k);
+                
+                FY0(m,k) = AY0(m,k);
+                FY1IN(m,k) = AY1_MINUS(m,k);
+                FY1OUT(m,k) = AY1_PLUS(m,k);
+                
+                FXX0(m,k) = AXX0(m,k);
+                FXX1IN(m,k) = AXX1_PLUS(m,k);
+                FXX1OUT(m,k) = AXX1_MINUS(m,k);
+                FXX3(m,k) = AXX3(m,k);
+                FXX4IN(m,k) = AXX4_PLUS(m,k);
+                FXX4OUT(m,k) = AXX4_MINUS(m,k);
+                
+                FYY0(m,k) = AYY0(m,k);
+                FYY1IN(m,k) = AYY1_MINUS(m,k);
+                FYY1OUT(m,k) = AYY1_PLUS(m,k);
+                FYY3(m,k) = AYY3(m,k);
+                FYY4IN(m,k) = AYY4_MINUS(m,k);
+                FYY4OUT(m,k) = AYY4_PLUS(m,k);
+                
+              elseif (k > M / 4 && k <= M / 2)
+                FX0(m,k) = AX0(m,k);
+                FX1IN(m,k) = AX1_PLUS(m,k);
+                FX1OUT(m,k) = AX1_MINUS(m,k);
+                
+                FY0(m,k) = - AY0(m,k);
+                FY1IN(m,k) = - AY1_MINUS(m,k);
+                FY1OUT(m,k) = - AY1_PLUS(m,k);
+                
+                FXX0(m,k) = AXX0(m,k);
+                FXX1IN(m,k) = AXX1_PLUS(m,k);
+                FXX1OUT(m,k) = AXX1_MINUS(m,k);
+                FXX3(m,k) = AXX3(m,k);
+                FXX4IN(m,k) = AXX4_PLUS(m,k);
+                FXX4OUT(m,k) = AXX4_MINUS(m,k);
+                
+                FYY0(m,k) = - AYY0(m,k);
+                FYY1IN(m,k) = - AYY1_MINUS(m,k);
+                FYY1OUT(m,k) = - AYY1_PLUS(m,k);
+                FYY3(m,k) = AYY3(m,k);
+                FYY4IN(m,k) = AYY4_MINUS(m,k);
+                FYY4OUT(m,k) = AYY4_PLUS(m,k);
+                
+              elseif (k > M / 2 && k <= 3 * M / 4)
+                FX0(m,k) = - AX0(m,k);
+                FX1IN(m,k) = - AX1_PLUS(m,k);
+                FX1OUT(m,k) = - AX1_MINUS(m,k);
+                
+                FY0(m,k) = - AY0(m,k);
+                FY1IN(m,k) = - AY1_MINUS(m,k);
+                FY1OUT(m,k) = - AY1_PLUS(m,k);
+                
+                FXX0(m,k) = - AXX0(m,k);
+                FXX1IN(m,k) = - AXX1_PLUS(m,k);
+                FXX1OUT(m,k) = - AXX1_MINUS(m,k);
+                FXX3(m,k) = AXX3(m,k);
+                FXX4IN(m,k) = AXX4_PLUS(m,k);
+                FXX4OUT(m,k) = AXX4_MINUS(m,k);
+                
+                FYY0(m,k) = - AYY0(m,k);
+                FYY1IN(m,k) = - AYY1_MINUS(m,k);
+                FYY1OUT(m,k) = - AYY1_PLUS(m,k);
+                FYY3(m,k) = AYY3(m,k);
+                FYY4IN(m,k) = AYY4_MINUS(m,k);
+                FYY4OUT(m,k) = AYY4_PLUS(m,k);
+                
+              elseif (k > 3 * M / 4 && k <= M)
+                FX0(m,k) = - AX0(m,k);
+                FX1IN(m,k) = - AX1_PLUS(m,k);
+                FX1OUT(m,k) = - AX1_MINUS(m,k);
+                
+                FY0(m,k) = AY0(m,k);
+                FY1IN(m,k) = AY1_MINUS(m,k);
+                FY1OUT(m,k) = AY1_PLUS(m,k);
+                
+                FXX0(m,k) = - AXX0(m,k);
+                FXX1IN(m,k) = - AXX1_PLUS(m,k);
+                FXX1OUT(m,k) = - AXX1_MINUS(m,k);
+                FXX3(m,k) = AXX3(m,k);
+                FXX4IN(m,k) = AXX4_PLUS(m,k);
+                FXX4OUT(m,k) = AXX4_MINUS(m,k);
+                
+                FYY0(m,k) = AYY0(m,k);
+                FYY1IN(m,k) = AYY1_MINUS(m,k);
+                FYY1OUT(m,k) = AYY1_PLUS(m,k);
+                FYY3(m,k) = AYY3(m,k);
+                FYY4IN(m,k) = AYY4_MINUS(m,k);
+                FYY4OUT(m,k) = AYY4_PLUS(m,k);
+                
+              end
+          end
+          
+        end
+        
+        % LAMBDA AND GAMA
+        for k = 1: M
+          XNABLA(m,k) = 6 * m_theta * xvects(m,k,z) / (hy * m_miu);
+          if (xvals(m,z) == xvals(k,z))
+            XF0(m,k) = 0;
+            XF1(m,k) = 1;
+          else
+            XF0(m,k) = xvals(m,z) * xvals(k,z) / (st * (xvals(m,z) - xvals(k,z)));
+            XF1(m,k) = 0;
+          end
+          
+          YNABLA(m,k) = 6 * m_miu * yvects(m,k,z) / (hx * m_theta);
+          if (yvals(m,z) == yvals(k,z))
+            YF0(m,k) = 0;
+            YF1(m,k) = 1;
+          else
+            YF0(m,k) = yvals(m,z) * yvals(k,z) / (st * (yvals(m,z) - yvals(k,z)));
+            YF1(m,k) = 0;
+          end
+        end
+        
+      end
+          
+      ZERO = vpa(zeros(M, M));
+      IDEN = vpa(eye(M, M));
+      RXIN_INV = vpa(pinv(RXIN));
+      RYIN_INV = vpa(pinv(RYIN));
+      
+      % LAMBDA AND GAMA
+      LAMBDA_XIN = vpa(zeros(M, M)); GAMA_XIN = vpa(zeros(M, M));
+      LAMBDA_XOUT = vpa(zeros(M, M)); GAMA_XOUT = vpa(zeros(M, M));
+      LAMBDA_YIN = vpa(zeros(M, M)); GAMA_YIN = vpa(zeros(M, M));
+      LAMBDA_YOUT = vpa(zeros(M, M)); GAMA_YOUT = vpa(zeros(M, M));
+      
+      XINV = vpa(pinv(xvects(:,:,z)));
+      XB = XINV * XNABLA;
+      xlanda = vpa(xvects(:,:,z)*(XB.*XF0));
+      xgama = vpa(xvects(:,:,z)*(XB.*XF1));
+      
+      YINV = vpa(pinv(yvects(:,:,z)));
+      YB = YINV * YNABLA;
+      ylanda = vpa(yvects(:,:,z)*(YB.*YF0));
+      ygama = vpa(yvects(:,:,z)*(YB.*YF1));
+      for m = 1: M
+        if (m <= M/4)
+          for k = 1: M
+            LAMBDA_XIN(m,k) = xlanda(m,k) * exp(- 0.5 * st * hx / xvals(k,z));
+            LAMBDA_XOUT(m,k) = xlanda(m,k) * exp( 0.5 * st * hx / xvals(k,z));
+            GAMA_XIN(m,k) = - 0.5 * hx * xgama(m,k) * exp(- 0.5 * st * hx / xvals(k,z));
+            GAMA_XOUT(m,k) = 0.5 * hx * xgama(m,k) * exp(0.5 * st * hx / xvals(k,z));
+            
+            LAMBDA_YIN(m,k) = ylanda(m,k) * exp(- 0.5 * st * hy / yvals(k,z));
+            LAMBDA_YOUT(m,k) = ylanda(m,k) * exp(0.5 * st * hy / yvals(k,z));
+            GAMA_YIN(m,k) = -0.5 * hy * ygama(m,k) * exp(- 0.5 * st * hy / yvals(k,z));
+            GAMA_YOUT(m,k) = 0.5 * hy * ygama(m,k) * exp(0.5 * st * hy / yvals(k,z));
+          end
+        elseif (m > M/4 && m <= M/2)
+          for k = 1: M
+            LAMBDA_XIN(m,k) = xlanda(m,k) * exp(0.5 * st * hx / xvals(k,z));
+            LAMBDA_XOUT(m,k) = xlanda(m,k) * exp(- 0.5 * st * hx / xvals(k,z));
+            GAMA_XIN(m,k) = 0.5 * hx * xgama(m,k) * exp(0.5 * st * hx / xvals(k,z));
+            GAMA_XOUT(m,k) = - 0.5 * hx * xgama(m,k) * exp(- 0.5 * st * hx / xvals(k,z));
+            
+            LAMBDA_YIN(m,k) = ylanda(m,k) * exp(- 0.5 * st * hy / yvals(k,z));
+            LAMBDA_YOUT(m,k) = ylanda(m,k) * exp(0.5 * st * hy / yvals(k,z));
+            GAMA_YIN(m,k) = -0.5 * hy * ygama(m,k) * exp(- 0.5 * st * hy / yvals(k,z));
+            GAMA_YOUT(m,k) = 0.5 * hy * ygama(m,k) * exp(0.5 * st * hy / yvals(k,z));
+          end
+        elseif (m > M/2 && m <= 3*M/4)
+          for k = 1: M
+            LAMBDA_XIN(m,k) = xlanda(m,k) * exp(0.5 * st * hx / xvals(k,z));
+            LAMBDA_XOUT(m,k) = xlanda(m,k) * exp(- 0.5 * st * hx / xvals(k,z));
+            GAMA_XIN(m,k) = 0.5 * hx * xgama(m,k) * exp(0.5 * st * hx / xvals(k,z));
+            GAMA_XOUT(m,k) = - 0.5 * hx * xgama(m,k) * exp(- 0.5 * st * hx / xvals(k,z));
+            
+            LAMBDA_YIN(m,k) = ylanda(m,k) * exp(0.5 * st * hy / yvals(k,z));
+            LAMBDA_YOUT(m,k) = ylanda(m,k) * exp(- 0.5 * st * hy / yvals(k,z));
+            GAMA_YIN(m,k) = 0.5 * hy * ygama(m,k) * exp(0.5 * st * hy / yvals(k,z));
+            GAMA_YOUT(m,k) = - 0.5 * hy * ygama(m,k) * exp(- 0.5 * st * hy / yvals(k,z));
+          end
+        elseif (m > 3*M/4 && m <= M)
+          for k = 1: M
+            LAMBDA_XIN(m,k) = xlanda(m,k) * exp(- 0.5 * st * hx / xvals(k,z));
+            LAMBDA_XOUT(m,k) = xlanda(m,k) * exp( 0.5 * st * hx / xvals(k,z));
+            GAMA_XIN(m,k) = - 0.5 * hx * xgama(m,k) * exp(- 0.5 * st * hx / xvals(k,z));
+            GAMA_XOUT(m,k) = 0.5 * hx * xgama(m,k) * exp(0.5 * st * hx / xvals(k,z));
+            
+            LAMBDA_YIN(m,k) = ylanda(m,k) * exp(0.5 * st * hy / yvals(k,z));
+            LAMBDA_YOUT(m,k) = ylanda(m,k) * exp(- 0.5 * st * hy / yvals(k,z));
+            GAMA_YIN(m,k) = 0.5 * hy * ygama(m,k) * exp(0.5 * st * hy / yvals(k,z));
+            GAMA_YOUT(m,k) = - 0.5 * hy * ygama(m,k) * exp(- 0.5 * st * hy / yvals(k,z));
+          end
+        end
+      end
+      
+      % EQUATION 1
+      MX1 = RXOUT * RXIN_INV;
+      MX2 = FX0 - (RXOUT * RXIN_INV) * FX0;
+      MX4 = FX1OUT - (RXOUT * RXIN_INV) * FX1IN;
+      MX5 = (IDEN - RXOUT * RXIN_INV) * SX;
+      
+      % EQUATION 2
+      MY1 = FY0 - (RYOUT * RYIN_INV) * FY0;
+      MY2 = RYOUT * RYIN_INV;
+      MY3 = FY1OUT - (RYOUT * RYIN_INV) * FY1IN;
+      MY5 = (IDEN - RYOUT * RYIN_INV) * SY;
+      
+      % EQUATION 3
+      MXX1 = (- RXOUT * RXIN_INV * (LAMBDA_XIN + GAMA_XIN) + (LAMBDA_XOUT + GAMA_XOUT)) * RXIN_INV;
+      MXX2 = - RXOUT * RXIN_INV * (FXX0 - (LAMBDA_XIN + GAMA_XIN) * RXIN_INV * FX0) ...
+             + FXX0 - (LAMBDA_XOUT + GAMA_XOUT) * RXIN_INV * FX0;
+      MXX3 = FXX3 - RXOUT * RXIN_INV * FXX3;
+         
+      MXX4 = RXOUT * RXIN_INV;
+      MXX5 = - RXOUT * RXIN_INV * (FXX1IN - (LAMBDA_XIN + GAMA_XIN) * RXIN_INV * FX1IN) ...
+             + FXX1OUT - (LAMBDA_XOUT + GAMA_XOUT) * RXIN_INV * FX1IN;
+      MXX6 = FXX4OUT - RXOUT * RXIN_INV * FXX4IN;
+      MXX7 = - RXOUT * RXIN_INV * (SXX - (LAMBDA_XIN + GAMA_XIN) * RXIN_INV * SX) ...
+             + SXX - (LAMBDA_XOUT + GAMA_XOUT) * RXIN_INV * SX;
+         
+      % EQUATION 4
+      MYY1 = - RYOUT * RYIN_INV * (FYY0 - (LAMBDA_YIN + GAMA_YIN) * RYIN_INV * FY0) ...
+             + FYY0 - (LAMBDA_YOUT + GAMA_YOUT) * RYIN_INV * FY0;
+      MYY2 = FYY3 - RYOUT * RYIN_INV * FYY3; 
+      MYY3 = (- RYOUT * RYIN_INV * (LAMBDA_YIN + GAMA_YIN) + (LAMBDA_YOUT + GAMA_YOUT)) * RYIN_INV;
+      MYY4 = - RYOUT * RYIN_INV * (FYY1IN - (LAMBDA_YIN + GAMA_YIN) * RYIN_INV * FY1IN) ...
+             + FYY1OUT - (LAMBDA_YOUT + GAMA_YOUT) * RYIN_INV * FY1IN;
+      MYY5 = FYY4OUT - RYOUT * RYIN_INV * FYY4IN;
+      MYY6 = RYOUT * RYIN_INV;
+      MYY7 = - RYOUT * RYIN_INV * (SYY - (LAMBDA_YIN + GAMA_YIN) * RYIN_INV * SY) ...
+             + SYY - (LAMBDA_YOUT + GAMA_YOUT) * RYIN_INV * SY;
+      
+      IN = [MX1,   -MX2,  ZERO,  -MX4;
+            -MY1,  MY2,   -MY3,  ZERO;
+            MXX1,  -(MXX2 - MXX3), MXX4,  -(MXX5 - MXX6);
+            -(MYY1 - MYY2), MYY3,  -(MYY4 - MYY5), MYY6];
+          
+      OUT = [IDEN,  -MX2,  ZERO,  -MX4;
+             -MY1,  IDEN,  -MY3,  ZERO;
+             ZERO,  -(MXX2 + MXX3), IDEN,  -(MXX5 + MXX6);
+             -(MYY1 + MYY2), ZERO,  -(MYY4 + MYY5), IDEN];
+         
+      OUT_INV = vpa(pinv(OUT));
+          
+      % CALCULATE THE RESPONSE MATRIX
+      R(:, :, ry, rx) = OUT_INV * IN;
+      
+      IND = [MX5; MY5; MXX7; MYY7];
+      
+      % CALCULATE THE SOURCE VECTOR
+      S(:, ry, rx) = OUT_INV * IND;
+    
+    end
+  end
+  
+end
