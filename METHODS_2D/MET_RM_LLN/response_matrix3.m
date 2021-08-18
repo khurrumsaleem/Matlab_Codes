@@ -619,8 +619,8 @@ function [R, S, F0, F1, SP] = response_matrix3(N, ZON, XDOM, YDOM, ZMAP, QMAP)
           
       ZERO = zeros(M, M);
       IDEN = eye(M, M);
-      RXIN_INV = inv(RXIN);
-      RYIN_INV = inv(RYIN);
+      RXIN_INV = pinv(RXIN);
+      RYIN_INV = pinv(RYIN);
       
       % LAMBDA AND GAMA
       LAMBDA_XIN = zeros(M, M); GAMA_XIN = zeros(M, M);
@@ -689,11 +689,6 @@ function [R, S, F0, F1, SP] = response_matrix3(N, ZON, XDOM, YDOM, ZMAP, QMAP)
         end
       end
       
-      %LAMBDA_XIN = zeros(M, M); GAMA_XIN = zeros(M, M);
-      %LAMBDA_XOUT = zeros(M, M); GAMA_XOUT = zeros(M, M);
-      %LAMBDA_YIN = zeros(M, M); GAMA_YIN = zeros(M, M);
-      %LAMBDA_YOUT = zeros(M, M); GAMA_YOUT = zeros(M, M);
-      
       % EQUATION 1
       MX1 = RXOUT * RXIN_INV;
       MX2 = FX0 - (RXOUT * RXIN_INV) * FX0;
@@ -741,7 +736,7 @@ function [R, S, F0, F1, SP] = response_matrix3(N, ZON, XDOM, YDOM, ZMAP, QMAP)
              ZERO,  -(MXX2 + MXX3), IDEN,  -(MXX5 + MXX6);
              -(MYY1 + MYY2), ZERO,  -(MYY4 + MYY5), IDEN];
          
-      OUT_INV = inv(OUT);
+      OUT_INV = pinv(OUT);
           
       % CALCULATE THE RESPONSE MATRIX
       R(:, :, ry, rx) = OUT_INV * IN;

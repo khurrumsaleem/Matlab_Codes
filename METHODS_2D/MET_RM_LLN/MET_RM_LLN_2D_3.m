@@ -365,6 +365,7 @@ function [SCALAR_FLUX, ...  % SCALAR FLUX IN EACH NODE
             flux = 0.25 * (OUTPUT' * QUAD(:, 3));
             flux0 = SCALAR_FLUX(JB, IB);
             SCALAR_FLUX(JB, IB) = flux;
+            % MOD
             if abs(1 - flux0 / flux) > ERR, ERR = abs(1 - flux0 / flux); end
           end
         end
