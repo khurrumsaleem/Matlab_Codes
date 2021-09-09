@@ -19,11 +19,11 @@ function [R, S, F0, F1, SP] = response_matrix3(N, ZON, XDOM, YDOM, ZMAP, QMAP)
     for rx = 1: NRX
         
       % AUXILIARY MATRICES
-      RXIN = zeros(M, M); RXOUT = zeros(M, M); SX = zeros(M,1);
+      RXIN = vpa(zeros(M, M)); RXOUT = zeros(M, M); SX = zeros(M,1);
       FX0 = zeros(M, M); FX1IN = zeros(M, M); FX1OUT = zeros(M, M);
       AX0 = zeros(M, M); AX1_PLUS = zeros(M, M); AX1_MINUS = zeros(M, M);
       
-      RYIN = zeros(M, M); RYOUT = zeros(M, M); SY = zeros(M, 1);
+      RYIN = vpa(zeros(M, M)); RYOUT = zeros(M, M); SY = zeros(M, 1);
       FY0 = zeros(M, M); FY1IN = zeros(M, M); FY1OUT = zeros(M, M);
       AY0 = zeros(M, M); AY1_PLUS = zeros(M, M); AY1_MINUS = zeros(M, M);
       

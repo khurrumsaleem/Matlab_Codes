@@ -1,6 +1,7 @@
 [QUAD, chi] = LQN_2D(N);
+ZON = [1; 0.95];
 
-M = N * (N + 2) / 2; I = sum(XDOM(2, :)); J = sum(YDOM(2, :));
+M = N * (N + 2) / 2;
 NZ = length(ZON(1,:));
 tol = 10e-4;
 
@@ -22,7 +23,7 @@ end
 % PARTICULAR SOLUTION X0
 DFLUX0 = rand(M,1); DFLUX1 = rand(M,1);
 PSOL0 = zeros(M,1); PSOL1 = zeros(M,1);
-st = ZON(1,1); ss = ZON(2,1); c0 = ss/st; hi = rand(1); hj = rand(1);
+st = ZON(1,1); ss = ZON(2,1); c0 = ss/st; hi = 0.1; hj = 0.1;
 for m = 1: M
   miu = QUAD(m,1); theta = QUAD(m,2); w = QUAD(m,3);
   AUX0 = 0; AUX1 = 0; AUX2 = 0; AUX4 = 0;
@@ -88,7 +89,7 @@ end
 % PARTICULAR SOLUTION X1
 DFLUX0 = rand(M,1); DFLUX1 = rand(M,1);
 PSOL0 = zeros(M,1); PSOL1 = zeros(M,1);
-st = ZON(1,1); ss = ZON(2,1); c0 = ss/st; hi = rand(1); hj = rand(1);
+st = ZON(1,1); ss = ZON(2,1); c0 = ss/st; hi = 0.01; hj = 0.01;
 for m = 1: M
   miu = QUAD(m,1); theta = QUAD(m,2); w = QUAD(m,3);
   AUX0 = 0; AUX1 = 0; AUX2 = 0; AUX3 = 0; AUX4 = 0; AUX5 = 0; AUX6 = 0; AUX7 = 0;
@@ -110,6 +111,8 @@ for m = 1: M
   PSOL1(m) = - 3*theta*(1 + 2*theta/(st*hj))*DFLUX1(m)/(st*hj) ...
              - AUX6 - AUX7;
 end
+PSOL0
+PSOL1
 % TESTING PARTICULAR SOLUTION X1
 for m = 1: M
   miu = QUAD(m,1); theta = QUAD(m,2);
@@ -128,9 +131,9 @@ for m = 1: M
   comp0 = 2*miu*PSOL1(m)/(st*hi) + PSOL0(m) - 0.25*c0*AUX0 ...
           + 3*theta*DFLUX0(m)/(st*hj) + 6*theta*theta*DFLUX0(m)/(st*hj*st*hj) ...
           + AUX2 - 12*miu*theta*theta*DFLUX1(m)/(st*hi*st*hj*st*hj) ...
-          - AUX3 - AUX4;
+          - AUX3 - AUX4
   comp1 = PSOL1(m) - 0.25*c0*AUX1 + 3*theta*DFLUX1(m)/(st*hj)...
-          + 6*theta*theta*DFLUX1(m)/(st*hj*st*hj) + AUX5;
+          + 6*theta*theta*DFLUX1(m)/(st*hj*st*hj) + AUX5
   assert(abs(comp0) < tol, 'Error: PSOL0 X1');
   assert(abs(comp1) < tol, 'Error: PSOL1 X1');
 end
